@@ -31,12 +31,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  addresses Address[]
-  orders    Order[]
-  carts     Cart[]
-  reviews   Review[]
+  accounts      Account[]
+  sessions      Session[]
+  addresses     Address[]
+  orders        Order[]
+  carts         Cart[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
 
   @@index([email])
 }
@@ -114,15 +115,21 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  category   Category       @relation(fields: [categoryId], references: [id])
-  images     ProductImage[]
-  cartItems  CartItem[]
-  orderItems OrderItem[]
-  reviews    Review[]
+  // Postgres-Full-Text: wird DB-seitig als GENERATED column + GIN-Index angelegt
+  // (siehe prisma/sql/01-init-search.sql). Prisma kennt das Feld nicht – Queries
+  // laufen via $queryRaw in lib/search.ts.
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
 
   @@index([categoryId])
   @@index([isActive])
   @@index([createdAt])
+  @@index([priceCents])
 }
 
 model ProductImage {
@@ -143,12 +150,13 @@ model ProductImage {
 // ---------- Cart (für Gäste UND eingeloggte User in DB, siehe ADR im PROJECT_PLAN) ----------
 
 model Cart {
-  id        String   @id @default(cuid())
-  userId    String?  @unique
-  token     String?  @unique // gesetzt für Gast-Carts, identifiziert via Cookie
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  expiresAt DateTime // Cleanup-Job entfernt abgelaufene Gast-Carts
+  id                  String   @id @default(cuid())
+  userId              String?  @unique
+  token               String?  @unique // gesetzt für Gast-Carts, identifiziert via Cookie
+  appliedDiscountCode String? // uppercase, wird bei jedem Read validiert
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  expiresAt           DateTime // Cleanup-Job entfernt abgelaufene Gast-Carts
 
   user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items CartItem[]
@@ -218,14 +226,16 @@ model Order {
 
   // Beträge in Cents
   subtotalCents Int
+  discountCents Int    @default(0)
   taxCents      Int
   shippingCents Int
   totalCents    Int
   currency      String @default("EUR")
 
   // Snapshots für reproduzierbare Rechnungen
-  shippingMethod String // z. B. "DHL Paket"
-  taxNote        String // z. B. "MwSt. ausgewiesen nach §14 UStG"
+  shippingMethod       String // z. B. "DHL Paket"
+  taxNote              String // z. B. "MwSt. ausgewiesen nach §14 UStG"
+  discountCodeSnapshot String? // Code-String zum Bestellzeitpunkt, falls verwendet
 
   // Stripe-Referenzen
   stripeSessionId       String? @unique
@@ -238,19 +248,23 @@ model Order {
   shippingSnapshot  Json // strukturierter Adress-Snapshot
   billingSnapshot   Json
 
+  discountCodeId String?
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   paidAt    DateTime?
   shippedAt DateTime?
 
-  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  shippingAddress Address?    @relation("ShippingAddress", fields: [shippingAddressId], references: [id], onDelete: SetNull)
-  billingAddress  Address?    @relation("BillingAddress", fields: [billingAddressId], references: [id], onDelete: SetNull)
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  shippingAddress Address?      @relation("ShippingAddress", fields: [shippingAddressId], references: [id], onDelete: SetNull)
+  billingAddress  Address?      @relation("BillingAddress", fields: [billingAddressId], references: [id], onDelete: SetNull)
+  discountCode    DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
   items           OrderItem[]
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([discountCodeId])
 }
 
 model OrderItem {
@@ -275,21 +289,123 @@ model OrderItem {
   @@index([productId])
 }
 
-// ---------- Reviews (Modell jetzt, UI in Phase 2) ----------
+// ---------- Reviews ----------
 
 model Review {
-  id        String   @id @default(cuid())
-  productId String
-  userId    String
-  rating    Int // 1..5
-  title     String?
-  body      String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  productId  String
+  userId     String
+  rating     Int // 1..5
+  title      String?
+  body       String   @db.Text
+  isVerified Boolean  @default(false) // true, wenn User mind. eine PAID-Order mit dem Produkt hat
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images  ReviewImage[]
 
   @@unique([productId, userId])
   @@index([productId])
+  @@index([createdAt])
+}
+
+model ReviewImage {
+  id        String   @id @default(cuid())
+  reviewId  String
+  url       String
+  alt       String?
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}
+
+// ---------- Wunschliste ----------
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+// ---------- Newsletter (Double Opt-In) ----------
+
+enum NewsletterStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
+model NewsletterSubscriber {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  status            NewsletterStatus @default(PENDING_CONFIRMATION)
+  confirmToken      String           @unique
+  confirmTokenExp   DateTime
+  unsubscribeToken  String           @unique
+  consentIp         String?
+  consentUserAgent  String?
+  consentAt         DateTime         @default(now())
+  confirmedAt       DateTime?
+  unsubscribedAt    DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([status])
+}
+
+// ---------- Rabattcodes ----------
+
+enum DiscountType {
+  PERCENT // value = Prozentwert 1..99
+  FIXED   // value = Cents-Betrag
+}
+
+model DiscountCode {
+  id             String       @id @default(cuid())
+  code           String       @unique // immer uppercase gespeichert
+  description    String?
+  type           DiscountType
+  value          Int // PERCENT: 1..99, FIXED: Cents
+  minSubtotalCents Int          @default(0)
+  validFrom      DateTime?
+  validUntil     DateTime?
+  maxRedemptions Int? // null = unbegrenzt
+  redemptionCount Int          @default(0)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  orders Order[]
+
+  @@index([code])
+  @@index([validUntil])
+}
+
+// ---------- Kontakt (Phase-2-Form, gespeichert für Audit) ----------
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  body      String   @db.Text
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

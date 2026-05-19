@@ -78,6 +78,8 @@ export type CartLineForPricing = {
 
 export type PricingBreakdown = {
   subtotalCents: number;
+  discountCents: number;
+  netAfterDiscountCents: number; // subtotal - discount, vor Versand
   taxCents: number;
   shippingCents: number;
   totalCents: number;
@@ -86,7 +88,7 @@ export type PricingBreakdown = {
 
 export function priceCart(
   lines: CartLineForPricing[],
-  options: { countryCode?: string } = {},
+  options: { countryCode?: string; discountCents?: number } = {},
 ): PricingBreakdown {
   let subtotalCents = 0;
   let taxCents = 0;
@@ -97,29 +99,40 @@ export function priceCart(
     taxCents += lineTaxFromGrossCents(lineGross, line.taxRate);
   }
 
+  const rawDiscount = Math.max(0, options.discountCents ?? 0);
+  const discountCents = Math.min(subtotalCents, rawDiscount);
+
+  // Rabatt verteilt sich proportional auf den enthaltenen MwSt-Anteil.
+  // (Bei Misch-Steuersätzen bleibt das Verhältnis erhalten.)
+  if (discountCents > 0 && subtotalCents > 0) {
+    const factor = (subtotalCents - discountCents) / subtotalCents;
+    taxCents = Math.round(taxCents * factor);
+  }
+
+  const netAfterDiscountCents = subtotalCents - discountCents;
   const country = options.countryCode?.toUpperCase() ?? 'DE';
   let shippingCents = 0;
   let freeShippingMissingCents: number | null = null;
 
-  if (subtotalCents > 0) {
+  if (netAfterDiscountCents > 0) {
     if (EU_COUNTRIES.has(country)) {
-      shippingCents = calculateShippingCents(country, subtotalCents);
+      shippingCents = calculateShippingCents(country, netAfterDiscountCents);
     } else {
-      // Außerhalb der EU: Versand erst auf Checkout-Page geblockt;
-      // hier dennoch Brutto-Anzeige mit höchstem EU-Tarif.
       shippingCents = SHIPPING_EU_CENTS;
     }
     const threshold = country === 'DE' ? SHIPPING_DE_FREE_FROM_CENTS : SHIPPING_EU_FREE_FROM_CENTS;
-    if (shippingCents > 0 && subtotalCents < threshold) {
-      freeShippingMissingCents = threshold - subtotalCents;
+    if (shippingCents > 0 && netAfterDiscountCents < threshold) {
+      freeShippingMissingCents = threshold - netAfterDiscountCents;
     }
   }
 
   return {
     subtotalCents,
+    discountCents,
+    netAfterDiscountCents,
     taxCents,
     shippingCents,
-    totalCents: subtotalCents + shippingCents,
+    totalCents: netAfterDiscountCents + shippingCents,
     freeShippingMissingCents,
   };
 }
