@@ -5,11 +5,12 @@ import { ArrowRight, Heart, Leaf, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/storefront/product-card';
 import { db } from '@/lib/db';
+import { getWishlistProductIds } from '@/lib/wishlist';
 
-export const revalidate = 600;
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [featured, categories] = await Promise.all([
+  const [featured, categories, wishlist] = await Promise.all([
     db.product.findMany({
       where: { isActive: true },
       include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 }, category: true },
@@ -17,6 +18,7 @@ export default async function HomePage() {
       take: 8,
     }),
     db.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+    getWishlistProductIds(),
   ]);
 
   return (
@@ -134,6 +136,7 @@ export default async function HomePage() {
             <ProductCard
               key={product.id}
               product={{
+                id: product.id,
                 slug: product.slug,
                 title: product.title,
                 priceCents: product.priceCents,
@@ -142,6 +145,7 @@ export default async function HomePage() {
                 blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
                 categoryName: product.category.name,
                 stock: product.stock,
+                inWishlist: wishlist.has(product.id),
               }}
             />
           ))}

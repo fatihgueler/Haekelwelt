@@ -1,11 +1,19 @@
 # Häkelwelt – Handmade Marketplace
 
-Ein Online-Shop für handgehäkelte Unikate. Phase 1 ist abgeschlossen: Storefront,
-Cart, Checkout (Stripe), Auth (NextAuth v5), Versand DE + EU mit deutscher MwSt.
+Ein Online-Shop für handgehäkelte Unikate.
 
-> **Status:** Phase 1 (MVP) abgeschlossen. Phase 2 (Suche, Wunschliste, Reviews,
-> Newsletter, Inhaltsseiten) und Phase 3 (Admin, Analytics, Lagerreservierung)
-> sind im [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) skizziert, aber noch nicht
+**Phase 1 (MVP):** Storefront, Cart, Checkout (Stripe), Auth (NextAuth v5),
+Versand DE + EU mit deutscher MwSt.
+
+**Phase 2 (Storefront-Erweiterung):** Postgres-Volltextsuche, Filter (Kategorie /
+Preis / Verfügbarkeit), Sortierung, Pagination, Wunschliste, Produktbewertungen
+mit verifiziertem-Kauf-Badge, Newsletter mit Double-Opt-In, prozentuale + fixe
+Rabattcodes, Inhaltsseiten (Über uns, FAQ, Versand, Kontakt mit Honeypot +
+Rate-Limit).
+
+> **Status:** Phase 2 abgeschlossen. Phase 3 (Admin-Panel, Mini-Analytics,
+> Lager­reservierung mit Timeout, i18n) ist im
+> [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) skizziert, aber noch nicht
 > implementiert.
 
 ---
@@ -71,10 +79,13 @@ cp .env.example .env
 # 3. Datenbank-Schema anwenden
 npx prisma migrate dev --name init
 
-# 4. Beispieldaten einspielen
+# 4. Postgres-Full-Text-Setup (einmalig, idempotent)
+npm run db:fts:init
+
+# 5. Beispieldaten einspielen
 npm run db:seed
 
-# 5. Entwicklungsserver starten
+# 6. Entwicklungsserver starten
 npm run dev
 # → http://localhost:3000
 ```
@@ -153,20 +164,21 @@ Phase 1 funktioniert ohne. Wenn du Google-Login aktivieren willst:
 
 ## 4. npm-Scripts
 
-| Script                      | Was es tut                                       |
-| --------------------------- | ------------------------------------------------ |
-| `npm run dev`               | Dev-Server auf Port 3000                         |
-| `npm run build`             | Produktions-Build (inkl. `prisma generate`)      |
-| `npm start`                 | Produktions-Server (nach `build`)                |
-| `npm run lint`              | ESLint, **0 Warnungen** Pflicht                  |
-| `npm run typecheck`         | `tsc --noEmit`, strict                           |
-| `npm run format`            | Prettier auf alle Dateien anwenden               |
-| `npm run db:migrate`        | Neue Migration anlegen + ausführen (dev)         |
-| `npm run db:migrate:deploy` | Migrationen in Produktion ausführen              |
-| `npm run db:seed`           | Beispiel-Daten einspielen (nicht in Production!) |
-| `npm run db:reset`          | DB löschen + neu migrieren + seeden (dev)        |
-| `npm run db:studio`         | Prisma Studio (DB-Browser auf Port 5555)         |
-| `npm run email:dev`         | React-Email-Preview auf Port 3001                |
+| Script                      | Was es tut                                           |
+| --------------------------- | ---------------------------------------------------- |
+| `npm run dev`               | Dev-Server auf Port 3000                             |
+| `npm run build`             | Produktions-Build (inkl. `prisma generate`)          |
+| `npm start`                 | Produktions-Server (nach `build`)                    |
+| `npm run lint`              | ESLint, **0 Warnungen** Pflicht                      |
+| `npm run typecheck`         | `tsc --noEmit`, strict                               |
+| `npm run format`            | Prettier auf alle Dateien anwenden                   |
+| `npm run db:migrate`        | Neue Migration anlegen + ausführen (dev)             |
+| `npm run db:migrate:deploy` | Migrationen in Produktion ausführen                  |
+| `npm run db:seed`           | Beispiel-Daten einspielen (nicht in Production!)     |
+| `npm run db:fts:init`       | Postgres-FTS-Spalte + GIN-Index anlegen (idempotent) |
+| `npm run db:reset`          | DB löschen + neu migrieren + seeden (dev)            |
+| `npm run db:studio`         | Prisma Studio (DB-Browser auf Port 5555)             |
+| `npm run email:dev`         | React-Email-Preview auf Port 3001                    |
 
 Pre-Commit: Husky + lint-staged formatieren und linten geänderte
 Dateien automatisch.
@@ -248,19 +260,33 @@ Nach einer erfolgreichen Test-Zahlung sollte:
 
 ## 8. Roadmap & bekannte Einschränkungen
 
-### Bewusst nicht in Phase 1
+### Phase 2 (jetzt enthalten)
 
-- **Suche, Filter, Sortierung, Pagination** → Phase 2 (Postgres-FTS).
-- **Wunschliste, Reviews mit Foto-Upload** → Phase 2 (UploadThing).
-- **Newsletter mit Double-Opt-In, Rabattcodes** → Phase 2.
-- **Inhaltsseiten** (Über uns, FAQ, Kontakt mit Honeypot + Rate-Limit)
-  → Phase 2.
-- **Admin-Panel** (Produkt-CRUD, Bestell-Workflow, Kundenliste) → Phase 3.
+- Postgres-Volltextsuche (FTS) mit `german`-Dictionary, GIN-Index,
+  Relevanz-Sortierung. Setup über `npm run db:fts:init`.
+- Produktliste mit Filter (Kategorie / Preis / Verfügbarkeit), Sortierung
+  (Neu / Preis ↑↓ / Name) und Pagination via URL-Parameter.
+- Wunschliste pro User mit Heart-Button auf Card + Detail-Seite.
+- Bewertungen mit Verified-Kauf-Badge, Sterne-Verteilung,
+  AggregateRating-JSON-LD. Foto-URLs sind im Schema und im Schema-Validator
+  vorgesehen; die Upload-UI selbst (UploadThing) ist als Phase-2.5-Erweiterung
+  ausgelassen, weil sie einen weiteren Drittdienst braucht.
+- Newsletter mit Double-Opt-In via Resend (`/newsletter/bestaetigen`,
+  `/newsletter/abmelden`), Consent-Tracking (IP, UA, Zeit).
+- Rabattcodes (prozentual + fix), Mindestbestellwert, Max-Redemptions,
+  Gültigkeitsfenster. Wird im Cart und Checkout angezeigt, beim
+  Stripe-Checkout proportional auf die Line-Items verteilt.
+- Inhaltsseiten: `/ueber-uns`, `/faq` (mit FAQPage-JSON-LD), `/versand`,
+  `/kontakt` (mit Honeypot + Rate-Limit, Speicherung in `ContactMessage`).
+
+### Bewusst nicht in Phase 2
+
+- **UploadThing-Integration für Review-Fotos** → Phase 2.5. Schema und
+  Validator sind bereits darauf vorbereitet (`ReviewImage`, `imageUrls`).
+- **Admin-Panel** (Produkt-CRUD, Bestell-Workflow, Kundenliste,
+  Rabattcode-Verwaltung, Newsletter-Empfänger-Liste, Kontakt-Inbox)
+  → Phase 3.
 - **Lagerreservierung beim Checkout-Start mit Timeout-Release** → Phase 3.
-  Aktuell wird Lager erst beim Webhook-Empfang dekrementiert. Eine
-  parallele Bestellung kann theoretisch denselben letzten Artikel
-  bekommen; ein Verifikations-Check beim Webhook würde dann eine der
-  beiden Orders auf `CANCELLED` setzen (heute noch nicht implementiert).
 - **Mini-Analytics** (Umsatz/Monat, Top-Produkte) → Phase 3.
 - **Mehrsprachigkeit, Framer-Motion-Polish, Pinterest-Galerie,
   Quick-View-Modal** → Phase 4.
@@ -268,8 +294,8 @@ Nach einer erfolgreichen Test-Zahlung sollte:
 ### Bekannte Einschränkungen
 
 - **Rate-Limiter** läuft in-memory – funktioniert nur sauber bei einer
-  Server-Instanz. In Phase 2 Umstellung auf Upstash-Ratelimit, dann
-  funktioniert es auch auf Vercels Serverless-Functions zuverlässig.
+  Server-Instanz. Auf Vercel Serverless empfiehlt sich Upstash Ratelimit
+  (vorgesehen für Phase 3-Hardening).
 - **Bilder im Seed** stammen von Unsplash – **dürfen nicht im Shop als
   „eigene Produkte" verkauft werden**. Vor Go-Live durch echte
   Produktfotos ersetzen.
@@ -280,6 +306,13 @@ Nach einer erfolgreichen Test-Zahlung sollte:
 - **Gast-Cart-Cleanup** erfolgt noch nicht automatisch – TTL ist im
   Schema, ein Cron-Job (z. B. via Vercel Cron in Phase 3) löscht
   abgelaufene Carts.
+- **Stripe-Rabattdarstellung:** Da Stripe keine negativen Line-Items
+  zulässt und Coupons globale Objekte sind, verteilen wir den
+  Rabatt-Betrag proportional auf die Line-Items, bevor wir sie an die
+  Checkout Session übergeben. Die `Order` im eigenen DB-Schema enthält
+  die ursprünglichen Beträge plus `discountCents`-Snapshot – die
+  Buchhaltung ist also korrekt; der Stripe-Beleg zeigt aber bereits
+  reduzierte Stückpreise.
 
 ---
 

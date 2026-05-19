@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/shared/logo';
+import { NewsletterForm } from '@/components/storefront/newsletter-form';
 import { Separator } from '@/components/ui/separator';
 
 const shopLinks = [
@@ -12,9 +13,9 @@ const shopLinks = [
 
 const serviceLinks = [
   { label: 'Über uns', href: '/ueber-uns' },
-  { label: 'Versand & Lieferung', href: '/versand' },
-  { label: 'Kontakt', href: '/kontakt' },
   { label: 'FAQ', href: '/faq' },
+  { label: 'Kontakt', href: '/kontakt' },
+  { label: 'Versand', href: '/versand' },
 ];
 
 const legalLinks = [
@@ -28,7 +29,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-secondary/30">
       <div className="container py-12 lg:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.4fr]">
           <div className="space-y-4">
             <Logo size="md" />
             <p className="text-sm text-muted-foreground">
@@ -38,6 +39,7 @@ export function Footer() {
           <FooterColumn title="Shop" links={shopLinks} />
           <FooterColumn title="Service" links={serviceLinks} />
           <FooterColumn title="Rechtliches" links={legalLinks} />
+          <NewsletterForm />
         </div>
 
         <Separator className="my-8" />

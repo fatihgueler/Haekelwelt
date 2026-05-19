@@ -6,7 +6,9 @@ import { ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CartLineControls } from '@/components/storefront/cart-line-controls';
+import { DiscountInput } from '@/components/storefront/discount-input';
 import { getCart } from '@/lib/cart';
+import { resolveAppliedDiscount } from '@/lib/discount';
 import { priceCart } from '@/lib/pricing';
 import { formatPriceCents } from '@/lib/utils';
 
@@ -36,14 +38,17 @@ export default async function CartPage() {
     );
   }
 
-  const pricing = priceCart(
-    items.map((i) => ({
-      priceCents: i.product.priceCents,
-      quantity: i.quantity,
-      taxRate: i.product.taxRate,
-    })),
-    { countryCode: 'DE' },
-  );
+  const baseLines = items.map((i) => ({
+    priceCents: i.product.priceCents,
+    quantity: i.quantity,
+    taxRate: i.product.taxRate,
+  }));
+  const grossSubtotal = baseLines.reduce((s, l) => s + l.priceCents * l.quantity, 0);
+  const applied = await resolveAppliedDiscount(cart?.appliedDiscountCode ?? null, grossSubtotal);
+  const pricing = priceCart(baseLines, {
+    countryCode: 'DE',
+    discountCents: applied?.discountCents,
+  });
 
   return (
     <div className="container py-12 lg:py-16">
@@ -108,6 +113,12 @@ export default async function CartPage() {
                 <dt className="text-muted-foreground">Zwischensumme</dt>
                 <dd>{formatPriceCents(pricing.subtotalCents)}</dd>
               </div>
+              {pricing.discountCents > 0 ? (
+                <div className="flex justify-between text-primary">
+                  <dt>Rabatt ({applied?.code.code})</dt>
+                  <dd>−{formatPriceCents(pricing.discountCents)}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Versand DE</dt>
                 <dd>
@@ -124,6 +135,10 @@ export default async function CartPage() {
                 <dd>{formatPriceCents(pricing.totalCents)}</dd>
               </div>
             </dl>
+
+            <div className="mt-4">
+              <DiscountInput appliedCode={applied?.code.code ?? null} />
+            </div>
 
             {pricing.freeShippingMissingCents && pricing.freeShippingMissingCents > 0 ? (
               <p className="mt-3 rounded-xl bg-secondary/60 p-3 text-xs text-foreground">

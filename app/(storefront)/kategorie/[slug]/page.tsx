@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { db } from '@/lib/db';
 import { ProductCard } from '@/components/storefront/product-card';
+import { getWishlistProductIds } from '@/lib/wishlist';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Params) {
   const { slug } = await params;
-  const category = await loadCategory(slug);
+  const [category, wishlist] = await Promise.all([loadCategory(slug), getWishlistProductIds()]);
   if (!category) notFound();
 
   return (
@@ -57,6 +58,7 @@ export default async function CategoryPage({ params }: Params) {
             <ProductCard
               key={product.id}
               product={{
+                id: product.id,
                 slug: product.slug,
                 title: product.title,
                 priceCents: product.priceCents,
@@ -65,6 +67,7 @@ export default async function CategoryPage({ params }: Params) {
                 blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
                 categoryName: category.name,
                 stock: product.stock,
+                inWishlist: wishlist.has(product.id),
               }}
             />
           ))}

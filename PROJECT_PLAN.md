@@ -506,6 +506,100 @@ Mini-Analytics, i18n, Framer-Motion-Polish, Quick-View-Modal.
 **Nächste Phase:** Phase 2 (Storefront-Erweiterung) – Search, Filter,
 Wunschliste, Reviews-UI, Newsletter, Inhaltsseiten.
 
+### Phase-2-Abschluss (2026-05-19)
+
+**Status:** Build grün, TypeScript strict ohne Fehler, ESLint 0 Warnings.
+
+**Schema-Erweiterungen:**
+
+- `WishlistItem` (User × Product unique), Indizes auf userId + productId.
+- `ReviewImage` (für UploadThing-Phase-2.5), `Review.isVerified`.
+- `NewsletterSubscriber` mit Status-Enum, Bestätigungs-/Abmelde-Token,
+  Consent-Snapshot (IP, UA, Zeit).
+- `DiscountCode` (PERCENT|FIXED, Mindestwert, Gültigkeitsfenster,
+  Max-Redemptions, Redemption-Counter).
+- `ContactMessage` (Name, E-Mail, Subject, Body, IP, UA – für Audit).
+- `Cart.appliedDiscountCode`, `Order.discountCents`/`discountCodeId`/
+  `discountCodeSnapshot`.
+- Postgres-FTS-Spalte `Product.searchVector` (DB-seitig generiert via
+  `prisma/sql/01-init-search.sql`, kein Prisma-Field – Queries laufen
+  über `$queryRaw`).
+
+**Suche / Filter / Sortierung / Pagination:**
+
+- `lib/products.ts` mit einheitlicher `listProducts()`-API: nutzt FTS
+  bei `q`, sonst direkt Prisma. Filter: Kategorie (Multi), Preis-Range,
+  in-Stock. Sortierung: Neu / Preis ↑↓ / Name. Pagination via Skip/Take.
+- `lib/products-shared.ts` enthält die client-safe Konstanten/Typen
+  (vermeidet `server-only`-Bruch im Client-Bundle).
+- Produkt-Filter-Sidebar mobil als Sheet, desktop sticky.
+
+**Wunschliste:**
+
+- `actions/wishlist.ts` mit `toggleWishlistAction`, Auth-Guard, gibt
+  `requiresAuth` zurück → Toast bietet Login-Aktion an.
+- `WishlistButton` als Client-Component auf Card und Detail-Seite.
+- `/konto/wunschliste` mit Empty-State.
+
+**Reviews:**
+
+- `lib/reviews.ts`: Summary (Average + Verteilung) + Eligibility-Check
+  (`canUserReviewProduct` – nur mit bezahlter Order zum Produkt).
+- `actions/reviews.ts` mit Zod-Validierung, Rate-Limit-frei (Eligibility
+  reicht als Gate).
+- `ReviewsSection` mit Distribution-Bars, Liste, Submit-Form rechts,
+  AggregateRating-JSON-LD im Product-LD.
+
+**Newsletter (Double-Opt-In):**
+
+- `subscribeNewsletterAction` mit Honeypot, Rate-Limit, generischer
+  Success-Message (kein Email-Enumeration).
+- DOI-Email via Resend + React Email.
+- `/newsletter/bestaetigen?token=…` und `/newsletter/abmelden?token=…`.
+- Consent-Daten gespeichert für DSGVO-Audit.
+
+**Rabattcodes:**
+
+- `lib/discount.ts`: Validierung mit klaren Fehlerursachen, Berechnung
+  (PERCENT cap auf Subtotal, FIXED cap auf Subtotal).
+- Apply/Remove-Actions auf Cart-Ebene, persistent in `Cart.appliedDiscountCode`.
+- Rabatt in `priceCart()` integriert: reduziert Brutto-Subtotal,
+  proportionale MwSt-Reduktion, Versand-Schwelle auf reduziertem Subtotal.
+- Checkout verteilt Rabatt proportional auf Stripe-Line-Items
+  (Stripe akzeptiert keine negativen Beträge / ephemere Coupons sind
+  Overkill für Phase 2).
+- Webhook zählt `redemptionCount` hoch und löscht den Code aus dem Cart.
+
+**Content-Seiten:**
+
+- `/ueber-uns`, `/faq` (mit FAQPage-LD), `/versand`, `/kontakt`.
+- Kontaktformular: Honeypot + Rate-Limit + Speicherung in `ContactMessage`.
+
+**Seed:** Zwei Demo-Codes – `WILLKOMMEN10` (10 % ab 30 €) und
+`FRUEHLING5` (5 € fix ab 50 €).
+
+**Bewusst nicht in Phase 2:**
+
+- UploadThing-Integration für Review-Fotos. Das Schema + die Server-
+  Action akzeptieren bereits `imageUrls`; nur die Client-Upload-UI fehlt.
+- Admin-Panel zum Verwalten von Codes, Newsletter, Kontaktanfragen,
+  Bestellungen → Phase 3.
+- Pagination als Infinite-Scroll – aktuell „klassisch" mit Seitenzahlen.
+
+**Bekannte Limitierungen (zusätzlich zu Phase 1):**
+
+- Postgres-FTS verlangt einmaliges `npm run db:fts:init` nach Migration.
+  Idempotent, aber nicht automatisch.
+- Rabatt-Stripe-Darstellung: Stripe-Beleg zeigt reduzierte Stückpreise,
+  nicht den Rabatt als separate Position. Die Order in DB ist korrekt.
+- `Cart.appliedDiscountCode` wird bei jedem Read neu validiert; ein
+  inzwischen abgelaufener Code wird stillschweigend ignoriert (UI
+  zeigt dann keinen Rabatt mehr; User merkt es erst beim Checkout).
+
+**Nächste Phase:** Phase 3 (Operations) – Admin-Panel, Lager­reservierung
+mit Timeout, Mini-Analytics, i18n-Infrastruktur. Optional vor Phase 3:
+UploadThing-Anbindung für Review-Fotos (Phase 2.5).
+
 ---
 
 ## 6. Architektur-Entscheidungen (wird kontinuierlich gepflegt)

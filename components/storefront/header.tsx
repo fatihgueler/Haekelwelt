@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { CartDrawer, type CartDrawerItem } from './cart-drawer';
+import { SearchBar } from './search-bar';
 
 export async function Header() {
   const [session, categories, cart] = await Promise.all([
@@ -50,14 +51,14 @@ export async function Header() {
       <div className="container flex h-16 items-center gap-3 lg:h-20">
         <Logo size="md" />
 
-        <nav className="ml-8 hidden items-center gap-6 md:flex">
+        <nav className="ml-6 hidden items-center gap-5 md:flex lg:ml-8 lg:gap-6">
           <Link
             href="/produkte"
             className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
           >
-            Alle Produkte
+            Shop
           </Link>
-          {categories.map((cat) => (
+          {categories.slice(0, 3).map((cat) => (
             <Link
               key={cat.id}
               href={`/kategorie/${cat.slug}`}
@@ -68,7 +69,9 @@ export async function Header() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1">
+        <SearchBar className="ml-auto mr-2 hidden max-w-xs flex-1 lg:flex" />
+
+        <div className="ml-auto flex items-center gap-1 lg:ml-0">
           <ThemeToggle />
           <Button
             asChild

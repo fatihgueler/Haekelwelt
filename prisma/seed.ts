@@ -1,4 +1,4 @@
-import { PrismaClient, TaxRate, UserRole } from '@prisma/client';
+import { DiscountType, PrismaClient, TaxRate, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const db = new PrismaClient();
@@ -230,9 +230,38 @@ async function main() {
     update: { passwordHash: customerPasswordHash },
   });
 
+  // Demo-Rabattcodes (Phase 2)
+  await db.discountCode.upsert({
+    where: { code: 'WILLKOMMEN10' },
+    create: {
+      code: 'WILLKOMMEN10',
+      description: '10 % Willkommensrabatt für Neukunden.',
+      type: DiscountType.PERCENT,
+      value: 10,
+      minSubtotalCents: 3000,
+      maxRedemptions: 100,
+      isActive: true,
+    },
+    update: {},
+  });
+  await db.discountCode.upsert({
+    where: { code: 'FRUEHLING5' },
+    create: {
+      code: 'FRUEHLING5',
+      description: '5 € Frühlings-Rabatt.',
+      type: DiscountType.FIXED,
+      value: 500,
+      minSubtotalCents: 5000,
+      maxRedemptions: 50,
+      isActive: true,
+    },
+    update: {},
+  });
+
   console.warn('Seed completed.');
   console.warn(`Admin login:    ${adminEmail} / Admin123!Admin`);
   console.warn(`Customer login: ${customerEmail} / Kunde123!Kunde`);
+  console.warn('Discount codes: WILLKOMMEN10 (10 %, min 30 €), FRUEHLING5 (5 € fix, min 50 €)');
 }
 
 main()

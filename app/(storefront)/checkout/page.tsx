@@ -5,10 +5,12 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
 import { getCart } from '@/lib/cart';
+import { resolveAppliedDiscount } from '@/lib/discount';
 import { priceCart } from '@/lib/pricing';
 import { formatPriceCents } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { CheckoutForm } from '@/components/storefront/checkout-form';
+import { DiscountInput } from '@/components/storefront/discount-input';
 
 export const metadata: Metadata = {
   title: 'Kasse',
@@ -21,14 +23,17 @@ export default async function CheckoutPage() {
   const [session, cart] = await Promise.all([auth(), getCart()]);
   if (!cart || cart.items.length === 0) redirect('/warenkorb');
 
-  const pricing = priceCart(
-    cart.items.map((i) => ({
-      priceCents: i.product.priceCents,
-      quantity: i.quantity,
-      taxRate: i.product.taxRate,
-    })),
-    { countryCode: 'DE' },
-  );
+  const baseLines = cart.items.map((i) => ({
+    priceCents: i.product.priceCents,
+    quantity: i.quantity,
+    taxRate: i.product.taxRate,
+  }));
+  const grossSubtotal = baseLines.reduce((s, l) => s + l.priceCents * l.quantity, 0);
+  const applied = await resolveAppliedDiscount(cart.appliedDiscountCode, grossSubtotal);
+  const pricing = priceCart(baseLines, {
+    countryCode: 'DE',
+    discountCents: applied?.discountCents,
+  });
 
   return (
     <div className="container py-10 lg:py-16">
@@ -80,6 +85,12 @@ export default async function CheckoutPage() {
                 <dt className="text-muted-foreground">Zwischensumme</dt>
                 <dd>{formatPriceCents(pricing.subtotalCents)}</dd>
               </div>
+              {pricing.discountCents > 0 ? (
+                <div className="flex justify-between text-primary">
+                  <dt>Rabatt ({applied?.code.code})</dt>
+                  <dd>−{formatPriceCents(pricing.discountCents)}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Versand (Standardannahme DE)</dt>
                 <dd>
@@ -96,6 +107,9 @@ export default async function CheckoutPage() {
                 <dd>{formatPriceCents(pricing.totalCents)}</dd>
               </div>
             </dl>
+            <div className="mt-4">
+              <DiscountInput appliedCode={applied?.code.code ?? null} />
+            </div>
             <p className="mt-4 text-xs text-muted-foreground">
               Die finalen Versandkosten werden nach Auswahl des Lieferlandes berechnet.
             </p>

@@ -82,9 +82,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         data: { stock: { decrement: item.quantity } },
       });
     }
+    if (order.discountCodeId) {
+      await tx.discountCode.update({
+        where: { id: order.discountCodeId },
+        data: { redemptionCount: { increment: 1 } },
+      });
+    }
     if (order.userId) {
       const userCart = await tx.cart.findUnique({ where: { userId: order.userId } });
-      if (userCart) await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
+      if (userCart) {
+        await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
+        await tx.cart.update({
+          where: { id: userCart.id },
+          data: { appliedDiscountCode: null },
+        });
+      }
     }
   });
 

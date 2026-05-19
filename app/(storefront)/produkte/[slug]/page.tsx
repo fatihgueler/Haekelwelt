@@ -7,9 +7,14 @@ import { ChevronRight } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { AddToCartButton } from '@/components/storefront/add-to-cart-button';
+import { ReviewStars } from '@/components/storefront/review-stars';
+import { ReviewsSection } from '@/components/storefront/reviews-section';
+import { WishlistButton } from '@/components/storefront/wishlist-button';
 import { db } from '@/lib/db';
 import { TAX_RATE_PERCENT } from '@/lib/pricing';
+import { getReviewSummary } from '@/lib/reviews';
 import { absoluteUrl, formatPriceCents } from '@/lib/utils';
+import { getWishlistProductIds } from '@/lib/wishlist';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -47,6 +52,12 @@ export default async function ProductDetailPage({ params }: Params) {
   const isSoldOut = product.stock <= 0;
   const isLast = product.stock > 0 && product.stock <= 1;
 
+  const [reviewSummary, wishlist] = await Promise.all([
+    getReviewSummary(product.id),
+    getWishlistProductIds(),
+  ]);
+  const inWishlist = wishlist.has(product.id);
+
   const productLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -63,6 +74,15 @@ export default async function ProductDetailPage({ params }: Params) {
       availability: isSoldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       itemCondition: 'https://schema.org/NewCondition',
     },
+    ...(reviewSummary.count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: reviewSummary.average.toFixed(1),
+            reviewCount: reviewSummary.count,
+          },
+        }
+      : {}),
   };
 
   const breadcrumbLd = {
@@ -151,6 +171,17 @@ export default async function ProductDetailPage({ params }: Params) {
               {product.category.name}
             </Link>
             <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">{product.title}</h1>
+            {reviewSummary.count > 0 ? (
+              <Link
+                href="#reviews-heading"
+                className="inline-flex items-center gap-2 text-sm hover:text-primary"
+              >
+                <ReviewStars value={reviewSummary.average} size="sm" />
+                <span className="text-muted-foreground">
+                  {reviewSummary.average.toFixed(1)} ({reviewSummary.count})
+                </span>
+              </Link>
+            ) : null}
             <div className="flex items-baseline gap-3">
               <p className="text-3xl font-semibold text-foreground">
                 {formatPriceCents(product.priceCents)}
@@ -178,8 +209,9 @@ export default async function ProductDetailPage({ params }: Params) {
             {product.description}
           </p>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-wrap items-center gap-3">
             <AddToCartButton productId={product.id} disabled={isSoldOut} />
+            <WishlistButton productId={product.id} initialInWishlist={inWishlist} />
             <Link
               href="/versand"
               className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
@@ -208,6 +240,8 @@ export default async function ProductDetailPage({ params }: Params) {
           </dl>
         </div>
       </div>
+
+      <ReviewsSection productId={product.id} productSlug={product.slug} />
 
       <Script
         id="ld-product"
