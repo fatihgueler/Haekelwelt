@@ -1,0 +1,53 @@
+@page "/checkout/success/{OrderId}"
+@inject OrderService OrderService
+
+<PageTitle>Bestellung bestätigt · Häkelwelt</PageTitle>
+
+<div class="container page-pad center-narrow">
+    @if (_order is null)
+    {
+        <h1>Bestellung nicht gefunden</h1>
+        <p><a href="/produkte" class="link">Zum Shop</a></p>
+    }
+    else
+    {
+        <h1>Vielen Dank für deine Bestellung!</h1>
+        <p class="muted">Bestellnummer: <strong>@_order.Number</strong> – wir haben dir eine Bestätigung an <strong>@_order.Email</strong> geschickt (sofern E-Mail-Versand konfiguriert).</p>
+
+        <div class="card">
+            <h2>Deine Artikel</h2>
+            <ul class="checkout-items">
+                @foreach (var i in _order.Items)
+                {
+                    <li>
+                        <div>
+                            <strong>@i.TitleSnapshot</strong>
+                            <p class="muted small">Menge: @i.Quantity</p>
+                        </div>
+                        <p>@PricingService.FormatPrice(i.LineSubtotalCents)</p>
+                    </li>
+                }
+            </ul>
+            <hr />
+            <dl>
+                <div><dt>Zwischensumme</dt><dd>@PricingService.FormatPrice(_order.SubtotalCents)</dd></div>
+                <div><dt>Versand</dt><dd>@(_order.ShippingCents == 0 ? "Gratis" : PricingService.FormatPrice(_order.ShippingCents))</dd></div>
+                <div class="muted"><dt>davon MwSt.</dt><dd>@PricingService.FormatPrice(_order.TaxCents)</dd></div>
+                <div class="total"><dt>Gesamt</dt><dd>@PricingService.FormatPrice(_order.TotalCents)</dd></div>
+            </dl>
+        </div>
+
+        <a href="/produkte" class="btn btn-primary">Weiter stöbern</a>
+    }
+</div>
+
+@code {
+    [Parameter] public string OrderId { get; set; } = string.Empty;
+
+    private Order? _order;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _order = await OrderService.GetByIdAsync(OrderId);
+    }
+}

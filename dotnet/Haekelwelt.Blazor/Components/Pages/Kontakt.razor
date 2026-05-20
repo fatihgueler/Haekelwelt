@@ -1,0 +1,64 @@
+@page "/kontakt"
+@inject ILogger<Kontakt> Logger
+
+<PageTitle>Kontakt · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    <header class="section-header">
+        <span class="tagline">Service</span>
+        <h1>Kontakt</h1>
+        <p class="muted">Hast du Fragen zu einer Bestellung oder einer Sonderanfertigung? Wir freuen uns über deine Nachricht.</p>
+    </header>
+
+    @if (_sent)
+    {
+        <div class="alert alert-success">Danke für deine Nachricht. Wir antworten in der Regel innerhalb 1–2 Werktagen.</div>
+    }
+    else
+    {
+        <EditForm Model="Input" method="post" OnValidSubmit="Submit" FormName="contact" class="checkout-form narrow">
+            <DataAnnotationsValidator />
+
+            <!-- Honeypot -->
+            <label class="honeypot"><span>Bitte leer lassen</span><InputText @bind-Value="Input.Website" /></label>
+
+            <div class="form-row">
+                <label>Name<InputText @bind-Value="Input.Name" required /></label>
+                <label>E-Mail<InputText @bind-Value="Input.Email" type="email" required /></label>
+            </div>
+            <label>Betreff<InputText @bind-Value="Input.Subject" required /></label>
+            <label>Nachricht<InputTextArea @bind-Value="Input.Body" rows="6" required /></label>
+
+            <button type="submit" class="btn btn-primary btn-lg">Nachricht senden</button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = new();
+    private bool _sent;
+
+    public Task Submit()
+    {
+        if (!string.IsNullOrEmpty(Input.Website))
+        {
+            // Honeypot getroffen – wir tun so, als wäre alles fein.
+            _sent = true;
+            return Task.CompletedTask;
+        }
+
+        Logger.LogInformation("Contact message from {Email} – {Subject}", Input.Email, Input.Subject);
+        // In Production hier in DB schreiben / E-Mail versenden.
+        _sent = true;
+        return Task.CompletedTask;
+    }
+
+    public class InputModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(2)] public string Name { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress] public string Email { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(3)] public string Subject { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(20)] public string Body { get; set; } = "";
+        public string? Website { get; set; } // honeypot
+    }
+}

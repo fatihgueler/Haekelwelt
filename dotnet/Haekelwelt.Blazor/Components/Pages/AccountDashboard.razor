@@ -1,0 +1,69 @@
+@page "/konto"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject CurrentUserService CurrentUser
+@inject OrderService OrderService
+
+<PageTitle>Mein Konto · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    <header class="section-header section-header-row">
+        <div>
+            <span class="tagline">Mein Konto</span>
+            <h1>Hallo @(_displayName)</h1>
+        </div>
+        <form method="post" action="/logout">
+            <button type="submit" class="btn btn-outline">Abmelden</button>
+        </form>
+    </header>
+
+    <div class="card-grid">
+        <div class="card">
+            <h2>Bestellungen</h2>
+            <p class="muted small">Deine letzten Bestellungen im Überblick.</p>
+            @if (_orders.Count == 0)
+            {
+                <p>Noch keine Bestellungen.</p>
+            }
+            else
+            {
+                <ul class="order-list">
+                    @foreach (var o in _orders)
+                    {
+                        <li>
+                            <span><code>@o.Number</code> <span class="muted small">@o.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span></span>
+                            <strong>@PricingService.FormatPrice(o.TotalCents)</strong>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="card">
+            <h2>Wunschliste</h2>
+            <p class="muted small">Artikel, die du dir gemerkt hast.</p>
+            <a href="/konto/wunschliste" class="btn btn-outline">Anzeigen</a>
+        </div>
+
+        <div class="card">
+            <h2>Konto</h2>
+            <p class="muted small">@_email</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _displayName = "";
+    private string _email = "";
+    private List<Order> _orders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await CurrentUser.GetAsync();
+        if (user is not null)
+        {
+            _displayName = user.DisplayName ?? user.Email ?? "";
+            _email = user.Email ?? "";
+        }
+        _orders = await OrderService.ListForUserAsync(5);
+    }
+}

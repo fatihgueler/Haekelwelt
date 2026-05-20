@@ -1,0 +1,108 @@
+@page "/warenkorb"
+@rendermode InteractiveServer
+@inject CartService CartService
+@inject PricingService Pricing
+
+<PageTitle>Warenkorb · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    @if (_cart is null || _cart.Items.Count == 0)
+    {
+        <div class="empty-state empty-state-block">
+            <h1>Dein Warenkorb ist noch leer</h1>
+            <p class="muted">Stöbere durch unsere handgefertigten Stücke und finde etwas, das deinen Alltag schmückt.</p>
+            <a href="/produkte" class="btn btn-primary">Zur Kollektion</a>
+        </div>
+    }
+    else
+    {
+        <header class="section-header">
+            <h1>Warenkorb</h1>
+            <p class="muted">@_cart.Items.Count @(_cart.Items.Count == 1 ? "Position" : "Positionen") – die endgültige Adresse legst du beim Checkout fest.</p>
+        </header>
+
+        <div class="cart-grid">
+            <ul class="cart-items">
+                @foreach (var item in _cart.Items)
+                {
+                    <li>
+                        <div class="thumb">
+                            @if (item.Product.Images.FirstOrDefault() is { } img)
+                            {
+                                <img src="@img.Url" alt="@img.Alt" />
+                            }
+                        </div>
+                        <div class="line">
+                            <div class="line-head">
+                                <a href="@($"/produkte/{item.Product.Slug}")" class="title">@item.Product.Title</a>
+                                <strong>@PricingService.FormatPrice(item.Product.PriceCents * item.Quantity)</strong>
+                            </div>
+                            <p class="muted">@PricingService.FormatPrice(item.Product.PriceCents) / Stück</p>
+                            <div class="qty">
+                                <button class="btn btn-sm" @onclick="() => UpdateQty(item.Id, item.Quantity - 1)" disabled="@_pending">−</button>
+                                <span>@item.Quantity</span>
+                                <button class="btn btn-sm" @onclick="() => UpdateQty(item.Id, item.Quantity + 1)"
+                                        disabled="@(_pending || item.Quantity >= item.Product.Stock)">+</button>
+                                <button class="link link-destructive" @onclick="() => Remove(item.Id)" disabled="@_pending">Entfernen</button>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+
+            <aside class="cart-summary">
+                <h2>Bestellübersicht</h2>
+                <dl>
+                    <div><dt>Zwischensumme</dt><dd>@PricingService.FormatPrice(_breakdown.SubtotalCents)</dd></div>
+                    <div><dt>Versand DE</dt><dd>@(_breakdown.ShippingCents == 0 ? "Gratis" : PricingService.FormatPrice(_breakdown.ShippingCents))</dd></div>
+                    <div class="muted"><dt>davon MwSt.</dt><dd>@PricingService.FormatPrice(_breakdown.TaxCents)</dd></div>
+                    <hr />
+                    <div class="total"><dt>Gesamt</dt><dd>@PricingService.FormatPrice(_breakdown.TotalCents)</dd></div>
+                </dl>
+                @if (_breakdown.FreeShippingMissingCents is int missing && missing > 0)
+                {
+                    <p class="hint">Noch <strong>@PricingService.FormatPrice(missing)</strong> bis zum Gratisversand in Deutschland.</p>
+                }
+                <a href="/checkout" class="btn btn-primary btn-lg full">Zur Kasse</a>
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    private Cart? _cart;
+    private PricingService.Breakdown _breakdown = new(0, 0, 0, 0, null);
+    private bool _pending;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        _cart = await CartService.GetCurrentAsync();
+        _breakdown = Pricing.PriceCart(
+            (_cart?.Items ?? new List<CartItem>())
+                .Select(i => new PricingService.Line(i.Product.PriceCents, i.Quantity, i.Product.TaxRate)));
+    }
+
+    private async Task UpdateQty(string itemId, int quantity)
+    {
+        _pending = true;
+        try
+        {
+            await CartService.SetQuantityAsync(itemId, Math.Max(0, quantity));
+            await Load();
+        }
+        finally { _pending = false; }
+    }
+
+    private async Task Remove(string itemId)
+    {
+        _pending = true;
+        try
+        {
+            await CartService.RemoveAsync(itemId);
+            await Load();
+        }
+        finally { _pending = false; }
+    }
+}

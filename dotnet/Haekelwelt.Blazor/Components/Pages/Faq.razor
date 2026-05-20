@@ -1,0 +1,43 @@
+@page "/faq"
+
+<PageTitle>Häufige Fragen · Häkelwelt</PageTitle>
+
+<div class="container page-pad narrow">
+    <header class="section-header">
+        <span class="tagline">Service</span>
+        <h1>Häufig gestellte Fragen</h1>
+        <p class="muted">Antworten zu Versand, Pflege und Rückgabe. Hast du etwas, das hier nicht steht? <a href="/kontakt" class="link">Schreib uns</a>.</p>
+    </header>
+
+    <ul class="faq">
+        @foreach (var f in Items)
+        {
+            <li>
+                <details>
+                    <summary>@f.Question</summary>
+                    <p>@f.Answer</p>
+                </details>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private record Faq(string Question, string Answer);
+
+    private static readonly Faq[] Items = new[]
+    {
+        new Faq("Wie lange dauert der Versand?",
+            "Innerhalb Deutschlands 2–4 Werktage, EU-weit 4–8 Werktage."),
+        new Faq("Was kostet der Versand?",
+            "Innerhalb Deutschlands 4,90 € pauschal, gratis ab einem Bestellwert von 50 €. In andere EU-Länder 9,90 € pauschal, gratis ab 80 €."),
+        new Faq("Wie pflege ich die handgehäkelten Stücke?",
+            "Handwäsche bei maximal 30 °C mit Wollwaschmittel. Trockne die Stücke flach liegend auf einem Handtuch."),
+        new Faq("Sind die Produkte für Babys geeignet?",
+            "Alle Stücke der Kategorie „Babys & Kinder\" sind aus schadstoffgeprüfter Wolle. Augen sind aufgestickt statt als Knopfaugen aufgenäht."),
+        new Faq("Kann ich ein Produkt zurückgeben?",
+            "Ja, du hast ein 14-tägiges Widerrufsrecht nach Erhalt der Ware. Details in der Widerrufsbelehrung."),
+        new Faq("Macht ihr auch Sonderanfertigungen?",
+            "Wir nehmen gelegentlich individuelle Aufträge an. Schreib uns einfach über das Kontaktformular."),
+    };
+}

@@ -1,0 +1,58 @@
+@page "/kategorie/{Slug}"
+@rendermode InteractiveServer
+@inject ProductService ProductService
+@inject WishlistService WishlistService
+
+@if (_category is null)
+{
+    <div class="container page-pad">
+        <h1>Kategorie nicht gefunden</h1>
+        <p><a href="/produkte" class="link">Zurück zum Shop</a></p>
+    </div>
+}
+else
+{
+    <PageTitle>@_category.Name · Häkelwelt</PageTitle>
+    <div class="container page-pad">
+        <header class="section-header">
+            <a href="/produkte" class="tagline">← Alle Kategorien</a>
+            <h1>@_category.Name</h1>
+            @if (!string.IsNullOrEmpty(_category.Description))
+            {
+                <p class="muted">@_category.Description</p>
+            }
+        </header>
+
+        @if (_result.Items.Count == 0)
+        {
+            <p class="empty-state">Aktuell sind keine Produkte in dieser Kategorie verfügbar.</p>
+        }
+        else
+        {
+            <div class="product-grid">
+                @foreach (var p in _result.Items)
+                {
+                    <ProductCard Product="p" InitialInWishlist="_wishlist.Contains(p.Id)" />
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = string.Empty;
+
+    private Category? _category;
+    private ProductService.ListResult _result = new(new List<Product>(), 0, 1, 24, 1);
+    private HashSet<string> _wishlist = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _category = await ProductService.GetCategoryBySlugAsync(Slug);
+        if (_category is null) return;
+        _result = await ProductService.ListAsync(new ProductService.ListInput(
+            CategorySlugs: new[] { Slug },
+            PerPage: 60));
+        _wishlist = await WishlistService.GetProductIdsAsync();
+    }
+}

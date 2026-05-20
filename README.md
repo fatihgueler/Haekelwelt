@@ -1,17 +1,28 @@
 # Häkelwelt – Handmade Marketplace
 
-Ein Online-Shop für handgehäkelte Unikate.
+Ein Online-Shop für handgehäkelte Unikate. Das Repo enthält **zwei
+parallele Stack-Varianten**:
 
-**Phase 1 (MVP):** Storefront, Cart, Checkout (Stripe), Auth (NextAuth v5),
+| Stack                                 | Pfad                  | Setup-Aufwand                           | Beschreibung                                                                                 |
+| ------------------------------------- | --------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Next.js 14 + Prisma + Postgres**    | Repo-Root (`/`)       | Höher (Neon/Stripe/Resend)              | Produktiv ausgerichtet, mit Stripe-Checkout, Resend-Mails, Postgres-FTS, Phase 1+2 komplett. |
+| **Blazor Web App + EF Core + SQLite** | [`/dotnet`](./dotnet) | „Läuft sofort" – nur .NET 8 SDK + Rider | Rider-freundliche Alternative ohne externe Services, ohne npm, ohne Docker.                  |
+
+Diese README beschreibt die Next.js-Variante. Für die .NET-Variante siehe
+[`dotnet/README.md`](./dotnet/README.md).
+
+**Next.js · Phase 1 (MVP):** Storefront, Cart, Checkout (Stripe), Auth (NextAuth v5),
 Versand DE + EU mit deutscher MwSt.
 
-**Phase 2 (Storefront-Erweiterung):** Postgres-Volltextsuche, Filter (Kategorie /
+**Next.js · Phase 2 (Storefront-Erweiterung):** Postgres-Volltextsuche, Filter (Kategorie /
 Preis / Verfügbarkeit), Sortierung, Pagination, Wunschliste, Produktbewertungen
 mit verifiziertem-Kauf-Badge, Newsletter mit Double-Opt-In, prozentuale + fixe
 Rabattcodes, Inhaltsseiten (Über uns, FAQ, Versand, Kontakt mit Honeypot +
 Rate-Limit).
 
-> **Status:** Phase 2 abgeschlossen. Phase 3 (Admin-Panel, Mini-Analytics,
+> **Status:** Phase 2 (Next.js) abgeschlossen. Blazor-Variante mit Storefront,
+> Cart, Wunschliste, Account und Demo-Checkout vorhanden – Stripe/Email-Anbindung
+> Phase 2 für Blazor. Phase 3 (Admin-Panel, Mini-Analytics,
 > Lager­reservierung mit Timeout, i18n) ist im
 > [`PROJECT_PLAN.md`](./PROJECT_PLAN.md) skizziert, aber noch nicht
 > implementiert.

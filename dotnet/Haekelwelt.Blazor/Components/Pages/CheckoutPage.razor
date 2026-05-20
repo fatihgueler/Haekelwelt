@@ -1,0 +1,175 @@
+@page "/checkout"
+@inject CartService CartService
+@inject OrderService OrderService
+@inject PricingService Pricing
+@inject NavigationManager Nav
+@inject CurrentUserService CurrentUser
+
+<PageTitle>Kasse · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    @if (_cart is null || _cart.Items.Count == 0)
+    {
+        <h1>Dein Warenkorb ist leer</h1>
+        <p><a href="/produkte" class="link">Zurück zum Shop</a></p>
+    }
+    else
+    {
+        <header class="section-header">
+            <h1>Kasse</h1>
+            <p class="muted">@(_isAuthed ? $"Du bestellst als {_email}." : "Du bestellst als Gast.")</p>
+        </header>
+
+        <div class="checkout-grid">
+            <EditForm Model="_form" OnValidSubmit="Submit" class="checkout-form" FormName="checkout-form">
+                <DataAnnotationsValidator />
+
+                <fieldset>
+                    <legend>Kontakt</legend>
+                    <label>E-Mail<InputText @bind-Value="_form.Email" type="email" required /></label>
+                    <ValidationMessage For="() => _form.Email" />
+                </fieldset>
+
+                <fieldset>
+                    <legend>Lieferadresse</legend>
+                    <div class="form-row">
+                        <label>Vorname<InputText @bind-Value="_form.FirstName" required /></label>
+                        <label>Nachname<InputText @bind-Value="_form.LastName" required /></label>
+                    </div>
+                    <label>Straße und Hausnummer<InputText @bind-Value="_form.Line1" required /></label>
+                    <label>Adresszusatz (optional)<InputText @bind-Value="_form.Line2" /></label>
+                    <div class="form-row">
+                        <label class="narrow">PLZ<InputText @bind-Value="_form.PostalCode" required /></label>
+                        <label>Stadt<InputText @bind-Value="_form.City" required /></label>
+                    </div>
+                    <label>Land
+                        <InputSelect @bind-Value="_form.Country">
+                            @foreach (var cc in PricingService.EuCountries.OrderBy(c => c))
+                            {
+                                <option value="@cc">@CountryName(cc)</option>
+                            }
+                        </InputSelect>
+                    </label>
+                </fieldset>
+
+                @if (_error is not null)
+                {
+                    <div class="alert alert-error">@_error</div>
+                }
+
+                <button type="submit" class="btn btn-primary btn-lg full" disabled="@_pending">
+                    @(_pending ? "…" : "Kostenpflichtig bestellen")
+                </button>
+                <p class="muted small">
+                    Hinweis: In dieser .NET-Demo wird die Bestellung direkt als bezahlt verbucht
+                    (keine Stripe-Integration). Lager und Bestätigungsseite verhalten sich realistisch.
+                </p>
+            </EditForm>
+
+            <aside class="cart-summary">
+                <h2>Deine Bestellung</h2>
+                <ul class="checkout-items">
+                    @foreach (var item in _cart.Items)
+                    {
+                        <li>
+                            <div class="thumb">
+                                @if (item.Product.Images.FirstOrDefault() is { } img)
+                                {
+                                    <img src="@img.Url" alt="@img.Alt" />
+                                }
+                            </div>
+                            <div>
+                                <strong>@item.Product.Title</strong>
+                                <p class="muted small">Menge: @item.Quantity</p>
+                                <p>@PricingService.FormatPrice(item.Product.PriceCents * item.Quantity)</p>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                <dl>
+                    <div><dt>Zwischensumme</dt><dd>@PricingService.FormatPrice(_breakdown.SubtotalCents)</dd></div>
+                    <div><dt>Versand</dt><dd>@(_breakdown.ShippingCents == 0 ? "Gratis" : PricingService.FormatPrice(_breakdown.ShippingCents))</dd></div>
+                    <div class="muted"><dt>davon MwSt.</dt><dd>@PricingService.FormatPrice(_breakdown.TaxCents)</dd></div>
+                    <hr />
+                    <div class="total"><dt>Gesamt</dt><dd>@PricingService.FormatPrice(_breakdown.TotalCents)</dd></div>
+                </dl>
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    private Cart? _cart;
+    private PricingService.Breakdown _breakdown = new(0, 0, 0, 0, null);
+    private CheckoutFormModel _form = new();
+    private bool _pending;
+    private bool _isAuthed;
+    private string? _email;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cart = await CartService.GetCurrentAsync();
+        var user = await CurrentUser.GetAsync();
+        _isAuthed = user is not null;
+        _email = user?.Email;
+        if (_isAuthed && !string.IsNullOrEmpty(_email)) _form.Email = _email;
+
+        Recalculate();
+    }
+
+    private void Recalculate()
+    {
+        _breakdown = Pricing.PriceCart(
+            (_cart?.Items ?? new List<CartItem>())
+                .Select(i => new PricingService.Line(i.Product.PriceCents, i.Quantity, i.Product.TaxRate)),
+            string.IsNullOrEmpty(_form.Country) ? "DE" : _form.Country);
+    }
+
+    private async Task Submit()
+    {
+        _pending = true;
+        _error = null;
+        try
+        {
+            var order = await OrderService.PlaceAsync(new OrderService.CheckoutInput(
+                _form.Email, _form.FirstName, _form.LastName,
+                _form.Line1, string.IsNullOrWhiteSpace(_form.Line2) ? null : _form.Line2,
+                _form.PostalCode, _form.City, _form.Country));
+            Nav.NavigateTo($"/checkout/success/{order.Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _pending = false;
+        }
+    }
+
+    private static string CountryName(string cc) => cc switch
+    {
+        "DE" => "Deutschland", "AT" => "Österreich", "BE" => "Belgien", "BG" => "Bulgarien",
+        "CY" => "Zypern", "CZ" => "Tschechien", "DK" => "Dänemark", "EE" => "Estland",
+        "ES" => "Spanien", "FI" => "Finnland", "FR" => "Frankreich", "GR" => "Griechenland",
+        "HR" => "Kroatien", "HU" => "Ungarn", "IE" => "Irland", "IT" => "Italien",
+        "LT" => "Litauen", "LU" => "Luxemburg", "LV" => "Lettland", "MT" => "Malta",
+        "NL" => "Niederlande", "PL" => "Polen", "PT" => "Portugal", "RO" => "Rumänien",
+        "SE" => "Schweden", "SI" => "Slowenien", "SK" => "Slowakei",
+        _ => cc,
+    };
+
+    public class CheckoutFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string FirstName { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string LastName { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string Line1 { get; set; } = "";
+        public string? Line2 { get; set; }
+        [System.ComponentModel.DataAnnotations.Required] public string PostalCode { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string City { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required] public string Country { get; set; } = "DE";
+    }
+}

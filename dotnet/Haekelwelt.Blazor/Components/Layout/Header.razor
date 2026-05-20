@@ -1,0 +1,42 @@
+@inject ProductService ProductService
+@inject CartService CartService
+
+<header class="site-header">
+    <div class="container site-header-row">
+        <a href="/" class="site-logo">Häkelwelt</a>
+        <nav class="site-nav" aria-label="Hauptnavigation">
+            <a href="/produkte">Shop</a>
+            @foreach (var cat in _categories.Take(3))
+            {
+                <a href="@($"/kategorie/{cat.Slug}")">@cat.Name</a>
+            }
+        </nav>
+        <form role="search" class="site-search" action="/produkte" method="get">
+            <input type="search" name="q" placeholder="Suche…" aria-label="Produktsuche" />
+        </form>
+        <div class="site-header-actions">
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/konto" title="Mein Konto">Konto</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login">Anmelden</a>
+                </NotAuthorized>
+            </AuthorizeView>
+            <a href="/warenkorb" class="cart-link">
+                Warenkorb @if (_cartCount > 0) { <span class="cart-badge">@_cartCount</span> }
+            </a>
+        </div>
+    </div>
+</header>
+
+@code {
+    private List<Category> _categories = new();
+    private int _cartCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await ProductService.ListCategoriesAsync();
+        _cartCount = await CartService.CountAsync();
+    }
+}

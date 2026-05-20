@@ -1,0 +1,69 @@
+@inject WishlistService WishlistService
+@inject CurrentUserService CurrentUser
+
+<article class="product-card">
+    <a href="@($"/produkte/{Product.Slug}")" class="product-card-link">
+        <div class="product-card-image">
+            @if (Image is not null)
+            {
+                <img src="@Image.Url" alt="@Image.Alt" loading="lazy" />
+            }
+            @if (Category is not null)
+            {
+                <span class="badge badge-light">@Category.Name</span>
+            }
+            @if (Product.Stock == 0)
+            {
+                <span class="badge badge-destructive">Ausverkauft</span>
+            }
+            else if (Product.Stock == 1)
+            {
+                <span class="badge badge-accent">Nur 1 verfügbar</span>
+            }
+        </div>
+        <div class="product-card-body">
+            <h3>@Product.Title</h3>
+            <p>@PricingService.FormatPrice(Product.PriceCents)</p>
+        </div>
+    </a>
+    <AuthorizeView>
+        <Authorized>
+            <button type="button"
+                    class="@($"wishlist-button{(_inWishlist ? " active" : "")}")"
+                    aria-pressed="@_inWishlist"
+                    aria-label="@(_inWishlist ? "Von der Wunschliste entfernen" : "Zur Wunschliste hinzufügen")"
+                    @onclick="Toggle"
+                    @onclick:preventDefault="true">
+                @(_inWishlist ? "♥" : "♡")
+            </button>
+        </Authorized>
+    </AuthorizeView>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public Product Product { get; set; } = null!;
+    [Parameter] public bool InitialInWishlist { get; set; }
+    [Parameter] public ProductImage? Image { get; set; }
+    [Parameter] public Category? Category { get; set; }
+
+    private bool _inWishlist;
+
+    protected override void OnParametersSet()
+    {
+        _inWishlist = InitialInWishlist;
+        Image ??= Product.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
+        Category ??= Product.Category;
+    }
+
+    private async Task Toggle()
+    {
+        try
+        {
+            _inWishlist = await WishlistService.ToggleAsync(Product.Id);
+        }
+        catch
+        {
+            // still silent for unauthenticated path; user button is hidden anyway
+        }
+    }
+}

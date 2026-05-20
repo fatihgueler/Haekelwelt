@@ -1,0 +1,81 @@
+@page "/register"
+@layout AuthLayout
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.Identity
+
+<PageTitle>Konto erstellen · Häkelwelt</PageTitle>
+
+<div class="auth-card">
+    <header>
+        <h1>Konto erstellen</h1>
+        <p class="muted">Schneller einkaufen, Bestellungen verfolgen, Wunschliste speichern.</p>
+    </header>
+
+    <StatusMessage Message="@_errorMessage" />
+
+    <EditForm Model="Input" method="post" OnValidSubmit="Submit" FormName="register">
+        <DataAnnotationsValidator />
+
+        <label>Name
+            <InputText @bind-Value="Input.Name" autocomplete="name" required />
+        </label>
+        <ValidationMessage For="() => Input.Name" />
+
+        <label>E-Mail
+            <InputText @bind-Value="Input.Email" autocomplete="email" type="email" required />
+        </label>
+        <ValidationMessage For="() => Input.Email" />
+
+        <label>Passwort (mind. 8 Zeichen, mit Klein-/Großbuchstabe und Ziffer)
+            <InputText @bind-Value="Input.Password" type="password" autocomplete="new-password" required />
+        </label>
+        <ValidationMessage For="() => Input.Password" />
+
+        <button type="submit" class="btn btn-primary btn-lg full">Konto erstellen</button>
+    </EditForm>
+
+    <p class="muted small center">
+        Schon registriert? <a href="/login" class="link">Jetzt einloggen</a>
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    private string? _errorMessage;
+
+    public async Task Submit()
+    {
+        var user = new ApplicationUser
+        {
+            UserName = Input.Email,
+            Email = Input.Email,
+            EmailConfirmed = true,
+            DisplayName = Input.Name,
+        };
+        var result = await UserManager.CreateAsync(user, Input.Password);
+        if (!result.Succeeded)
+        {
+            _errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+            return;
+        }
+        await UserManager.AddToRoleAsync(user, "Customer");
+        await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, isPersistent: true, lockoutOnFailure: false);
+        Nav.NavigateTo("/konto");
+    }
+
+    public class InputModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(2)]
+        public string Name { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(8)]
+        public string Password { get; set; } = "";
+    }
+}

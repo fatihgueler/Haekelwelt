@@ -1,0 +1,43 @@
+@page "/konto/wunschliste"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject WishlistService WishlistService
+
+<PageTitle>Wunschliste · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    <header class="section-header section-header-row">
+        <div>
+            <span class="tagline">Mein Konto</span>
+            <h1>Wunschliste</h1>
+            <p class="muted">@(_items.Count == 0 ? "Du hast noch nichts gemerkt." : $"{_items.Count} Artikel auf deiner Liste.")</p>
+        </div>
+        <a href="/konto" class="btn btn-outline">Zurück zum Konto</a>
+    </header>
+
+    @if (_items.Count == 0)
+    {
+        <div class="empty-state empty-state-block">
+            <p>Klick einfach auf das Herz an einem Produkt, das dir gefällt.</p>
+            <a href="/produkte" class="btn btn-primary">Zur Kollektion</a>
+        </div>
+    }
+    else
+    {
+        <div class="product-grid">
+            @foreach (var w in _items)
+            {
+                <ProductCard Product="w.Product" InitialInWishlist="true" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<WishlistItem> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await WishlistService.ListAsync();
+    }
+}

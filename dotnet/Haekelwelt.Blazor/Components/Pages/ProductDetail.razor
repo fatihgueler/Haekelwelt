@@ -1,0 +1,145 @@
+@page "/produkte/{Slug}"
+@rendermode InteractiveServer
+@inject ProductService ProductService
+@inject CartService CartService
+@inject WishlistService WishlistService
+@inject NavigationManager Nav
+
+@if (_product is null)
+{
+    <div class="container page-pad">
+        <h1>Produkt nicht gefunden</h1>
+        <p><a href="/produkte" class="link">Zurück zum Shop</a></p>
+    </div>
+}
+else
+{
+    <PageTitle>@_product.Title · Häkelwelt</PageTitle>
+
+    <div class="container page-pad">
+        <nav class="breadcrumb" aria-label="Brotkrumen">
+            <a href="/">Start</a> ›
+            <a href="/produkte">Shop</a> ›
+            <a href="@($"/kategorie/{_product.Category.Slug}")">@_product.Category.Name</a> ›
+            <span>@_product.Title</span>
+        </nav>
+
+        <div class="product-detail">
+            <div class="product-gallery">
+                @if (_product.Images.FirstOrDefault() is { } img)
+                {
+                    <img src="@img.Url" alt="@img.Alt" />
+                }
+            </div>
+            <aside class="product-info">
+                <a href="@($"/kategorie/{_product.Category.Slug}")" class="tagline">@_product.Category.Name</a>
+                <h1>@_product.Title</h1>
+                <div class="price-row">
+                    <p class="price">@PricingService.FormatPrice(_product.PriceCents)</p>
+                    <p class="muted">inkl. @((int)_product.TaxRate) % MwSt., zzgl. <a href="/versand">Versand</a></p>
+                </div>
+
+                <div class="badge-row">
+                    @if (_product.Stock <= 0)
+                    {
+                        <span class="badge badge-destructive">Ausverkauft</span>
+                    }
+                    else if (_product.Stock == 1)
+                    {
+                        <span class="badge badge-accent">Nur 1 Stück verfügbar</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-secondary">Auf Lager · @_product.Stock verfügbar</span>
+                    }
+                    <span class="badge badge-outline">Handarbeit aus Deutschland</span>
+                </div>
+
+                <p class="description">@_product.Description</p>
+
+                @if (_message is not null)
+                {
+                    <div class="@(_messageIsError ? "alert alert-error" : "alert alert-success")">@_message</div>
+                }
+
+                <div class="action-row">
+                    <button class="btn btn-primary btn-lg"
+                            disabled="@(_product.Stock <= 0 || _pending)"
+                            @onclick="AddToCart">
+                        @(_pending ? "…" : "In den Warenkorb")
+                    </button>
+                    <AuthorizeView>
+                        <Authorized>
+                            <button class="btn btn-outline" @onclick="ToggleWishlist">
+                                @(_inWishlist ? "♥ Gemerkt" : "♡ Merken")
+                            </button>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+
+                <dl class="specs">
+                    <div><dt>Material</dt><dd>100 % Naturfaser</dd></div>
+                    <div><dt>Lieferzeit DE</dt><dd>2–4 Werktage</dd></div>
+                    <div><dt>Lieferzeit EU</dt><dd>4–8 Werktage</dd></div>
+                    <div><dt>Pflege</dt><dd>Handwäsche kalt</dd></div>
+                </dl>
+            </aside>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = string.Empty;
+
+    private Product? _product;
+    private bool _inWishlist;
+    private bool _pending;
+    private string? _message;
+    private bool _messageIsError;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _product = await ProductService.GetBySlugAsync(Slug);
+        if (_product is not null)
+        {
+            var wishes = await WishlistService.GetProductIdsAsync();
+            _inWishlist = wishes.Contains(_product.Id);
+        }
+    }
+
+    private async Task AddToCart()
+    {
+        if (_product is null) return;
+        _pending = true;
+        _message = null;
+        try
+        {
+            await CartService.AddAsync(_product.Id);
+            _message = "Im Warenkorb hinzugefügt.";
+            _messageIsError = false;
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _messageIsError = true;
+        }
+        finally
+        {
+            _pending = false;
+        }
+    }
+
+    private async Task ToggleWishlist()
+    {
+        if (_product is null) return;
+        try
+        {
+            _inWishlist = await WishlistService.ToggleAsync(_product.Id);
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _messageIsError = true;
+        }
+    }
+}

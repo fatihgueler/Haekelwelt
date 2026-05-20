@@ -10,3 +10,6 @@ prisma/migrations
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+# Blazor / .NET-Variante – eigene Toolchain (Rider/dotnet format)
+dotnet/

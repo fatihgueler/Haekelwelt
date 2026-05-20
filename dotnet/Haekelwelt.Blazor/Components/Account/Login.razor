@@ -1,0 +1,85 @@
+@page "/login"
+@layout AuthLayout
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+
+<PageTitle>Anmelden · Häkelwelt</PageTitle>
+
+<div class="auth-card">
+    <header>
+        <h1>Willkommen zurück</h1>
+        <p class="muted">Melde dich an, um deinen Warenkorb und deine Bestellungen zu verwalten.</p>
+    </header>
+
+    <StatusMessage Message="@_errorMessage" />
+
+    <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+        <DataAnnotationsValidator />
+
+        <label>E-Mail
+            <InputText @bind-Value="Input.Email" autocomplete="email" type="email" required />
+        </label>
+        <ValidationMessage For="() => Input.Email" />
+
+        <label>Passwort
+            <InputText @bind-Value="Input.Password" type="password" autocomplete="current-password" required />
+        </label>
+        <ValidationMessage For="() => Input.Password" />
+
+        <label class="checkbox">
+            <InputCheckbox @bind-Value="Input.RememberMe" />
+            <span>Angemeldet bleiben</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-lg full">Anmelden</button>
+    </EditForm>
+
+    <p class="muted small center">
+        Noch kein Konto? <a href="/register" class="link">Jetzt registrieren</a>
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    private string? ReturnUrl { get; set; }
+
+    private string? _errorMessage;
+
+    public async Task LoginUser()
+    {
+        var result = await SignInManager.PasswordSignInAsync(
+            Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            Nav.NavigateTo(string.IsNullOrEmpty(ReturnUrl) ? "/konto" : ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            _errorMessage = "Konto vorübergehend gesperrt. Bitte später erneut versuchen.";
+        }
+        else
+        {
+            _errorMessage = "E-Mail oder Passwort ist falsch.";
+        }
+    }
+
+    public class InputModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.EmailAddress]
+        public string Email { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required]
+        public string Password { get; set; } = "";
+
+        public bool RememberMe { get; set; }
+    }
+}

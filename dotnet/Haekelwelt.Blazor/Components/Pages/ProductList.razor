@@ -1,0 +1,95 @@
+@page "/produkte"
+@rendermode InteractiveServer
+@inject ProductService ProductService
+@inject WishlistService WishlistService
+@inject NavigationManager Nav
+
+<PageTitle>Alle Produkte · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    <header class="section-header">
+        <span class="tagline">Shop</span>
+        <h1>@(string.IsNullOrEmpty(Query) ? "Alle Produkte" : $"Suchergebnisse für „{Query}\"")</h1>
+        <p class="muted">@(_result.Total == 0 ? "Keine Treffer für die aktuelle Auswahl." : _result.Total == 1 ? "1 Produkt" : $"{_result.Total} Produkte")</p>
+    </header>
+
+    <form class="toolbar" method="get" action="/produkte">
+        <input type="search" name="q" value="@Query" placeholder="Suche…" aria-label="Suche" />
+        <select name="sort" @onchange="OnSortChanged">
+            <option value="newest" selected="@(Sort == "newest")">Neueste zuerst</option>
+            <option value="price_asc" selected="@(Sort == "price_asc")">Preis aufsteigend</option>
+            <option value="price_desc" selected="@(Sort == "price_desc")">Preis absteigend</option>
+            <option value="title_asc" selected="@(Sort == "title_asc")">Name (A–Z)</option>
+        </select>
+        <button type="submit" class="btn btn-outline btn-sm">Anwenden</button>
+    </form>
+
+    @if (_result.Items.Count == 0)
+    {
+        <p class="empty-state">Wir konnten leider nichts finden. Probier es mit weniger Filtern oder einer anderen Suche.</p>
+    }
+    else
+    {
+        <div class="product-grid">
+            @foreach (var p in _result.Items)
+            {
+                <ProductCard Product="p" InitialInWishlist="_wishlist.Contains(p.Id)" />
+            }
+        </div>
+
+        @if (_result.PageCount > 1)
+        {
+            <nav class="pagination" aria-label="Seitennavigation">
+                @for (int p = 1; p <= _result.PageCount; p++)
+                {
+                    var page = p;
+                    <a class="@(page == _result.Page ? "active" : "")" href="@BuildUrl(page)">@page</a>
+                }
+            </nav>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, SupplyParameterFromQuery] public string? Query { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "sort")] public string? Sort { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "page")] public int? Page { get; set; }
+
+    private ProductService.ListResult _result = new(new List<Product>(), 0, 1, 24, 1);
+    private HashSet<string> _wishlist = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var sort = ParseSort(Sort);
+        _result = await ProductService.ListAsync(new ProductService.ListInput(
+            Query: Query,
+            Sort: sort,
+            Page: Page ?? 1));
+        _wishlist = await WishlistService.GetProductIdsAsync();
+    }
+
+    private ProductService.SortOption ParseSort(string? s) => s switch
+    {
+        "price_asc" => ProductService.SortOption.PriceAsc,
+        "price_desc" => ProductService.SortOption.PriceDesc,
+        "title_asc" => ProductService.SortOption.TitleAsc,
+        _ => ProductService.SortOption.Newest,
+    };
+
+    private void OnSortChanged(ChangeEventArgs e)
+    {
+        var next = e.Value?.ToString() ?? "newest";
+        var url = $"/produkte?sort={next}";
+        if (!string.IsNullOrEmpty(Query)) url += $"&q={Uri.EscapeDataString(Query)}";
+        Nav.NavigateTo(url);
+    }
+
+    private string BuildUrl(int page)
+    {
+        var qs = new List<string>();
+        if (!string.IsNullOrEmpty(Query)) qs.Add($"q={Uri.EscapeDataString(Query)}");
+        if (!string.IsNullOrEmpty(Sort)) qs.Add($"sort={Sort}");
+        if (page > 1) qs.Add($"page={page}");
+        return qs.Count == 0 ? "/produkte" : "/produkte?" + string.Join("&", qs);
+    }
+}
