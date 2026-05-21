@@ -23,21 +23,21 @@
 </div>
 
 @code {
-    private record Faq(string Question, string Answer);
+    private record FaqEntry(string Question, string Answer);
 
-    private static readonly Faq[] Items = new[]
+    private static readonly FaqEntry[] Items = new[]
     {
-        new Faq("Wie lange dauert der Versand?",
+        new FaqEntry("Wie lange dauert der Versand?",
             "Innerhalb Deutschlands 2–4 Werktage, EU-weit 4–8 Werktage."),
-        new Faq("Was kostet der Versand?",
+        new FaqEntry("Was kostet der Versand?",
             "Innerhalb Deutschlands 4,90 € pauschal, gratis ab einem Bestellwert von 50 €. In andere EU-Länder 9,90 € pauschal, gratis ab 80 €."),
-        new Faq("Wie pflege ich die handgehäkelten Stücke?",
+        new FaqEntry("Wie pflege ich die handgehäkelten Stücke?",
             "Handwäsche bei maximal 30 °C mit Wollwaschmittel. Trockne die Stücke flach liegend auf einem Handtuch."),
-        new Faq("Sind die Produkte für Babys geeignet?",
+        new FaqEntry("Sind die Produkte für Babys geeignet?",
             "Alle Stücke der Kategorie „Babys & Kinder\" sind aus schadstoffgeprüfter Wolle. Augen sind aufgestickt statt als Knopfaugen aufgenäht."),
-        new Faq("Kann ich ein Produkt zurückgeben?",
+        new FaqEntry("Kann ich ein Produkt zurückgeben?",
             "Ja, du hast ein 14-tägiges Widerrufsrecht nach Erhalt der Ware. Details in der Widerrufsbelehrung."),
-        new Faq("Macht ihr auch Sonderanfertigungen?",
+        new FaqEntry("Macht ihr auch Sonderanfertigungen?",
             "Wir nehmen gelegentlich individuelle Aufträge an. Schreib uns einfach über das Kontaktformular."),
     };
 }

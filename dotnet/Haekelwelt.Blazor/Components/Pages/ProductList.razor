@@ -42,8 +42,8 @@
             <nav class="pagination" aria-label="Seitennavigation">
                 @for (int p = 1; p <= _result.PageCount; p++)
                 {
-                    var page = p;
-                    <a class="@(page == _result.Page ? "active" : "")" href="@BuildUrl(page)">@page</a>
+                    var pageNum = p;
+                    <a class="@(pageNum == _result.Page ? "active" : "")" href="@BuildUrl(pageNum)">@pageNum</a>
                 }
             </nav>
         }
