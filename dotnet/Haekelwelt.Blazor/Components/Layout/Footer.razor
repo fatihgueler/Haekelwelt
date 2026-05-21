@@ -1,3 +1,5 @@
+@inject ProductService ProductService
+
 <div class="footer-divider" aria-hidden="true">
     <Illustration Kind="stitch-row" CssClass="footer-stitch" />
 </div>
@@ -16,10 +18,10 @@
             <h3>Shop</h3>
             <ul>
                 <li><a href="/produkte">Alle Produkte</a></li>
-                <li><a href="/kategorie/amigurumi">Amigurumi</a></li>
-                <li><a href="/kategorie/heimdeko">Heimdeko</a></li>
-                <li><a href="/kategorie/accessoires">Accessoires</a></li>
-                <li><a href="/kategorie/babys-und-kinder">Babys &amp; Kinder</a></li>
+                @foreach (var cat in _categories)
+                {
+                    <li><a href="@($"/kategorie/{cat.Slug}")">@cat.Name</a></li>
+                }
             </ul>
         </div>
         <div>
@@ -46,3 +48,12 @@
         <small>Preise inkl. der gesetzlichen deutschen MwSt., zzgl. Versand.</small>
     </div>
 </footer>
+
+@code {
+    private List<Category> _categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await ProductService.ListCategoriesAsync();
+    }
+}
