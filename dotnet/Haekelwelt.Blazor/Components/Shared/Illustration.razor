@@ -1,0 +1,126 @@
+@* Wiederverwendbare SVG-Illustrationen im Häkel-/Handmade-Stil.
+   Inline, ohne externe Assets. Nutzen currentColor fürs Theming.
+   Verwendung: <Illustration Kind="yarn-ball" CssClass="hero-art" />     *@
+
+@switch (Kind)
+{
+    case "yarn-ball":
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <defs>
+                <radialGradient id="@($"yarn-{_id}")" cx="0.35" cy="0.35" r="0.8">
+                    <stop offset="0%" stop-color="currentColor" stop-opacity="0.95" />
+                    <stop offset="100%" stop-color="currentColor" stop-opacity="0.5" />
+                </radialGradient>
+            </defs>
+            <circle cx="60" cy="64" r="42" fill="@($"url(#yarn-{_id})")" />
+            <g stroke="hsla(36 33% 99% / 0.55)" stroke-width="1.4" fill="none" stroke-linecap="round">
+                <path d="M22 50 Q60 30 100 56" />
+                <path d="M22 60 Q60 42 100 66" />
+                <path d="M22 70 Q60 54 100 76" />
+                <path d="M22 80 Q60 66 100 86" />
+                <path d="M30 92 Q60 78 92 96" />
+                <path d="M34 42 Q60 22 92 46" />
+            </g>
+            <g stroke="hsla(36 33% 99% / 0.7)" stroke-width="1.2" fill="none" stroke-linecap="round">
+                <path d="M44 28 Q56 42 50 60 Q44 78 60 96" />
+                <path d="M76 28 Q66 44 72 62 Q78 80 60 100" />
+            </g>
+            <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <line x1="86" y1="22" x2="108" y2="44" />
+                <line x1="76" y1="32" x2="98" y2="54" />
+            </g>
+            <circle cx="86" cy="22" r="3.2" fill="currentColor" />
+            <circle cx="76" cy="32" r="3.2" fill="currentColor" />
+        </svg>
+        break;
+
+    case "bunny":
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <ellipse cx="42" cy="32" rx="9" ry="22" fill="currentColor" opacity="0.85" />
+            <ellipse cx="78" cy="32" rx="9" ry="22" fill="currentColor" opacity="0.85" />
+            <ellipse cx="42" cy="34" rx="4" ry="14" fill="hsla(345 50% 90% / 0.95)" />
+            <ellipse cx="78" cy="34" rx="4" ry="14" fill="hsla(345 50% 90% / 0.95)" />
+            <circle cx="60" cy="74" r="32" fill="currentColor" />
+            <g fill="#2a221c">
+                <circle cx="50" cy="68" r="3" />
+                <circle cx="70" cy="68" r="3" />
+            </g>
+            <path d="M56 78 Q60 82 64 78" stroke="#2a221c" stroke-width="1.8" stroke-linecap="round" fill="none" />
+            <ellipse cx="60" cy="76" rx="3.5" ry="2.5" fill="hsla(345 60% 65% / 1)" />
+            <g stroke="hsla(36 33% 99% / 0.45)" stroke-width="1" fill="none" stroke-dasharray="2 2">
+                <path d="M32 70 Q60 96 88 70" />
+            </g>
+        </svg>
+        break;
+
+    case "stitched-heart":
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <path d="M60 96 C20 70 24 36 44 36 C52 36 58 40 60 48 C62 40 68 36 76 36 C96 36 100 70 60 96 Z" fill="currentColor" />
+            <path d="M60 96 C20 70 24 36 44 36 C52 36 58 40 60 48 C62 40 68 36 76 36 C96 36 100 70 60 96 Z"
+                  stroke="hsla(36 33% 99% / 0.7)" stroke-width="1.5" stroke-dasharray="3 3" fill="none" />
+        </svg>
+        break;
+
+    case "stitch-row":
+        <svg viewBox="0 0 240 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true" preserveAspectRatio="none">
+            <g stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round">
+                @for (var x = 0; x < 24; x++)
+                {
+                    var cx = x * 10 + 5;
+                    <path d="@($"M{cx - 4} 8 Q{cx} 0 {cx + 4} 8 Q{cx} 18 {cx - 4} 8 Z")" />
+                }
+            </g>
+        </svg>
+        break;
+
+    case "hands":
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <g fill="currentColor" opacity="0.92">
+                <path d="M14 62 Q18 38 38 36 L52 36 Q60 36 60 44 L60 70 Q60 80 50 84 L26 86 Q14 80 14 62 Z" />
+                <path d="M106 62 Q102 38 82 36 L68 36 Q60 36 60 44 L60 70 Q60 80 70 84 L94 86 Q106 80 106 62 Z" />
+            </g>
+            <g stroke="hsla(36 33% 99% / 0.9)" stroke-width="2" fill="none" stroke-linecap="round">
+                <path d="M30 56 Q40 62 50 56" />
+                <path d="M30 66 Q40 72 50 66" />
+                <path d="M70 56 Q80 62 90 56" />
+                <path d="M70 66 Q80 72 90 66" />
+            </g>
+            <g fill="currentColor">
+                <circle cx="60" cy="92" r="4" />
+                <circle cx="48" cy="100" r="3" />
+                <circle cx="72" cy="100" r="3" />
+            </g>
+        </svg>
+        break;
+
+    case "leaves":
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <path d="M60 100 Q60 60 60 30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+            <path d="M60 60 Q40 50 28 30 Q50 36 60 60 Z" fill="currentColor" opacity="0.85" />
+            <path d="M60 75 Q80 70 92 50 Q70 52 60 75 Z" fill="currentColor" opacity="0.7" />
+            <path d="M60 45 Q44 36 36 20 Q56 24 60 45 Z" fill="currentColor" opacity="0.9" />
+        </svg>
+        break;
+
+    case "gift":
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <rect x="20" y="46" width="80" height="60" rx="6" fill="currentColor" />
+            <rect x="20" y="46" width="80" height="14" fill="currentColor" opacity="0.7" />
+            <rect x="54" y="46" width="12" height="60" fill="hsla(36 33% 99% / 0.85)" />
+            <path d="M60 46 C60 36 50 28 42 32 C34 36 38 46 60 46 Z" fill="currentColor" />
+            <path d="M60 46 C60 36 70 28 78 32 C86 36 82 46 60 46 Z" fill="currentColor" />
+        </svg>
+        break;
+
+    case "sparkle":
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="@CssClass" aria-hidden="true">
+            <path d="M12 2 L13.5 9.5 L21 11 L13.5 12.5 L12 20 L10.5 12.5 L3 11 L10.5 9.5 Z" fill="currentColor" />
+        </svg>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public string Kind { get; set; } = "";
+    [Parameter] public string? CssClass { get; set; }
+    private readonly string _id = Guid.NewGuid().ToString("N").Substring(0, 8);
+}

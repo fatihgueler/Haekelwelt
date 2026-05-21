@@ -6,33 +6,104 @@
 <PageTitle>Häkelwelt – Handgehäkeltes mit Liebe</PageTitle>
 
 <section class="hero">
+    <div class="hero-mesh" aria-hidden="true"></div>
+    <div class="hero-stitches" aria-hidden="true">
+        <Illustration Kind="stitch-row" CssClass="hero-stitch hero-stitch--top" />
+        <Illustration Kind="stitch-row" CssClass="hero-stitch hero-stitch--bottom" />
+    </div>
+    <Illustration Kind="sparkle" CssClass="floating-sparkle floating-sparkle--a" />
+    <Illustration Kind="sparkle" CssClass="floating-sparkle floating-sparkle--b" />
+    <Illustration Kind="leaves" CssClass="floating-leaf" />
+
     <div class="container hero-grid">
-        <div>
-            <span class="tagline">Handgehäkelt mit Liebe</span>
-            <h1>Kleine Schätze, die deinen Alltag wärmer machen.</h1>
+        <div class="hero-text">
+            <span class="hero-eyebrow">
+                <Illustration Kind="sparkle" CssClass="eyebrow-icon" />
+                <span>Handgehäkelt mit Liebe</span>
+            </span>
+            <h1 class="hero-title">
+                Kleine <em>Schätze</em>,<br />
+                die deinen Alltag wärmer machen.
+            </h1>
             <p class="lead">
                 Jedes Stück entsteht in unserer kleinen Werkstatt – Masche für Masche, mit
-                ausgewählten Wollen und einem Auge fürs Detail. Wir versenden klimaneutral aus
-                Deutschland, in Europa zuhause.
+                ausgewählten Wollen und einem Auge fürs Detail.
             </p>
             <div class="cta-row">
-                <a href="/produkte" class="btn btn-primary">Zur Kollektion</a>
-                <a href="/ueber-uns" class="btn btn-outline">Unsere Geschichte</a>
+                <a href="/produkte" class="btn btn-primary btn-lg btn-glow">
+                    Zur Kollektion <span aria-hidden="true">→</span>
+                </a>
+                <a href="/ueber-uns" class="btn btn-ghost">Unsere Geschichte</a>
             </div>
+
+            <ul class="hero-trustlist">
+                <li><span class="dot"></span>2–4 Tage Lieferzeit</li>
+                <li><span class="dot"></span>Gratisversand ab 50 €</li>
+                <li><span class="dot"></span>14 Tage Widerruf</li>
+            </ul>
         </div>
-        <div class="hero-image">
-            @if (_featured.FirstOrDefault()?.Images.FirstOrDefault() is { } hero)
-            {
-                <img src="@hero.Url" alt="@hero.Alt" />
-            }
+
+        <div class="hero-illustration">
+            <div class="hero-art-card">
+                <Illustration Kind="yarn-ball" CssClass="hero-yarn" />
+                <div class="hero-art-chip hero-art-chip--top">
+                    <Illustration Kind="stitched-heart" CssClass="chip-icon" />
+                    <span>Handarbeit</span>
+                </div>
+                <div class="hero-art-chip hero-art-chip--bottom">
+                    <Illustration Kind="leaves" CssClass="chip-icon chip-icon--leaf" />
+                    <span>OEKO-TEX</span>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="container features">
-    <div class="feature"><h3>Mit Liebe gefertigt</h3><p>Handarbeit, keine Serie.</p></div>
-    <div class="feature"><h3>Naturmaterialien</h3><p>OEKO-TEX-Wolle und Baumwolle.</p></div>
-    <div class="feature"><h3>Gratisversand ab 50 €</h3><p>Plastikfrei verpackt mit DHL.</p></div>
+<div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+        @for (var i = 0; i < 2; i++)
+        {
+            <span>Handgemacht in Deutschland</span><span class="bullet">✦</span>
+            <span>Plastikfrei verpackt</span><span class="bullet">✦</span>
+            <span>Mit Liebe gefertigt</span><span class="bullet">✦</span>
+            <span>Klimaneutral mit DHL</span><span class="bullet">✦</span>
+            <span>Naturmaterialien</span><span class="bullet">✦</span>
+            <span>Faire Preise</span><span class="bullet">✦</span>
+        }
+    </div>
+</div>
+
+<section class="story container">
+    <div class="story-grid">
+        <div class="story-illustration">
+            <Illustration Kind="hands" CssClass="story-art" />
+        </div>
+        <div class="story-text">
+            <span class="tagline">Unsere Manufaktur</span>
+            <h2>Schöne Dinge brauchen Zeit.</h2>
+            <p class="lead">
+                Wir glauben an Stücke, die länger halten als ein Trend. Jedes Modell entsteht in
+                unserer kleinen Werkstatt – ohne Hektik, ohne Serienfertigung.
+            </p>
+            <div class="pillars">
+                <div class="pillar">
+                    <Illustration Kind="stitched-heart" CssClass="pillar-icon" />
+                    <h3>Handarbeit</h3>
+                    <p>Jede Masche entsteht in der Werkstatt, keine Maschine ersetzt das.</p>
+                </div>
+                <div class="pillar">
+                    <Illustration Kind="leaves" CssClass="pillar-icon" />
+                    <h3>Naturmaterialien</h3>
+                    <p>OEKO-TEX-Wolle und Bio-Baumwolle, soweit verfügbar.</p>
+                </div>
+                <div class="pillar">
+                    <Illustration Kind="gift" CssClass="pillar-icon" />
+                    <h3>Liebevoll verpackt</h3>
+                    <p>Plastikfrei in Karton, mit handgeschriebener Karte.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 @if (_categories.Count > 0)
@@ -46,13 +117,16 @@
             <div class="category-grid">
                 @foreach (var cat in _categories)
                 {
-                    <a href="@($"/kategorie/{cat.Slug}")" class="category-card">
+                    <a href="@($"/kategorie/{cat.Slug}")" class="category-card category-card--glass">
+                        <div class="category-card-icon">
+                            <Illustration Kind="@CategoryIcon(cat.SortOrder)" CssClass="cat-icon" />
+                        </div>
                         <h3>@cat.Name</h3>
                         @if (!string.IsNullOrEmpty(cat.Description))
                         {
                             <p>@cat.Description</p>
                         }
-                        <span class="link">Entdecken →</span>
+                        <span class="link link-arrow">Entdecken</span>
                     </a>
                 }
             </div>
@@ -60,28 +134,40 @@
     </section>
 }
 
-<section class="container">
+<section class="container featured-section">
     <header class="section-header section-header-row">
         <div>
-            <span class="tagline">Neu im Shop</span>
-            <h2>Frisch eingetroffen</h2>
+            <span class="tagline">Aus dem Sortiment</span>
+            <h2>Frisch aus der Werkstatt</h2>
         </div>
         @if (_featured.Count > 0)
         {
-            <a href="/produkte" class="link">Alle Produkte →</a>
+            <a href="/produkte" class="link link-arrow">Alle Produkte</a>
         }
     </header>
 
     @if (_featured.Count == 0)
     {
-        <div class="empty-state empty-state-block">
-            <h3>Bald geht es los.</h3>
-            <p class="muted">Aktuell sind noch keine Produkte eingestellt. Schau bald wieder vorbei!</p>
-            <AuthorizeView Roles="Admin">
-                <Authorized>
-                    <a href="/admin" class="btn btn-primary">Im Admin-Bereich Produkte anlegen</a>
-                </Authorized>
-            </AuthorizeView>
+        <div class="empty-hero">
+            <div class="empty-hero-art">
+                <Illustration Kind="bunny" CssClass="empty-bunny" />
+                <div class="empty-hero-glow" aria-hidden="true"></div>
+            </div>
+            <div class="empty-hero-text">
+                <h3>Hier wachsen bald kleine Schätze.</h3>
+                <p class="muted">
+                    Aktuell sind noch keine Produkte eingestellt. Wir häkeln gerade – schau in
+                    ein paar Tagen wieder vorbei.
+                </p>
+                <AuthorizeView Roles="Admin">
+                    <Authorized>
+                        <a href="/admin" class="btn btn-primary">Im Admin-Bereich anlegen</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/ueber-uns" class="btn btn-outline">Mehr über uns</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </div>
     }
     else
@@ -95,6 +181,23 @@
     }
 </section>
 
+<section class="newsletter-band">
+    <div class="container newsletter-card">
+        <div class="newsletter-art">
+            <Illustration Kind="stitched-heart" CssClass="newsletter-heart" />
+        </div>
+        <div class="newsletter-text">
+            <span class="tagline">Bleib in Verbindung</span>
+            <h2>Kleine Werkstatt-Post.</h2>
+            <p class="muted">
+                Neue Stücke, kleine Geschichten aus der Werkstatt, gelegentlich ein Rabatt.
+                Kein Spam, Abmeldung mit einem Klick.
+            </p>
+            <p class="muted small">Newsletter-Anmeldung kommt in Kürze.</p>
+        </div>
+    </div>
+</section>
+
 @code {
     private List<Product> _featured = new();
     private List<Category> _categories = new();
@@ -106,4 +209,12 @@
         _categories = await ProductService.ListCategoriesAsync();
         _wishlist = await WishlistService.GetProductIdsAsync();
     }
+
+    private static string CategoryIcon(int sortOrder) => (sortOrder % 4) switch
+    {
+        0 => "bunny",
+        1 => "stitched-heart",
+        2 => "yarn-ball",
+        _ => "gift",
+    };
 }
