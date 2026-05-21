@@ -1,0 +1,50 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+
+<PageTitle>Admin · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    <header class="section-header section-header-row">
+        <div>
+            <span class="tagline">Verwaltung</span>
+            <h1>Willkommen im Admin-Bereich</h1>
+            <p class="muted">Hier pflegst du deine Kategorien und Produkte.</p>
+        </div>
+    </header>
+
+    <div class="admin-nav">
+        <a href="/admin/kategorien" class="btn btn-outline">Kategorien (@_categoryCount)</a>
+        <a href="/admin/produkte" class="btn btn-outline">Produkte (@_productCount)</a>
+    </div>
+
+    <div class="card-grid" style="margin-top:2rem">
+        <div class="card">
+            <h2>1. Kategorien anlegen</h2>
+            <p class="muted small">Lege zuerst die Bereiche an, in die deine Produkte einsortiert werden – z. B. Amigurumi, Heimdeko.</p>
+            <a href="/admin/kategorien/neu" class="btn btn-primary">Neue Kategorie</a>
+        </div>
+        <div class="card">
+            <h2>2. Produkte einstellen</h2>
+            <p class="muted small">Sobald du mindestens eine Kategorie hast, kannst du Produkte mit Bild, Preis und Bestand anlegen.</p>
+            <a href="/admin/produkte/neu" class="btn btn-primary @(_categoryCount == 0 ? "btn-disabled" : "")">Neues Produkt</a>
+        </div>
+        <div class="card">
+            <h2>Shop ansehen</h2>
+            <p class="muted small">Sieh dir an, wie der Shop für Kund:innen aussieht.</p>
+            <a href="/" class="btn btn-outline">Zur Startseite</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int _categoryCount;
+    private int _productCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categoryCount = (await CategoryService.ListAllAsync()).Count;
+        _productCount = (await ProductService.ListAllForAdminAsync()).Count;
+    }
+}

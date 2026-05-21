@@ -338,3 +338,18 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .blazor-error-boundary {
     background: var(--destructive); color: white; padding: 1rem 1.25rem;
 }
+
+/* ---------- Admin ---------- */
+.admin-nav { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+.admin-table {
+    width: 100%; border-collapse: collapse; margin-top: 1rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; overflow: hidden;
+}
+.admin-table th, .admin-table td { padding: 0.75rem 1rem; text-align: left; vertical-align: middle; }
+.admin-table th { background: hsla(35 20% 92% / 0.5); font-weight: 600; font-size: 0.85rem; }
+.admin-table tr { border-bottom: 1px solid var(--border); }
+.admin-table tr:last-child { border-bottom: 0; }
+.admin-table code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.85rem; color: var(--muted-foreground); }
+.admin-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 0.5rem; }
+.row-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.btn-disabled { opacity: 0.4; pointer-events: none; }

@@ -1,0 +1,91 @@
+@page "/admin/kategorien"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@inject CategoryService CategoryService
+
+<PageTitle>Kategorien · Admin · Häkelwelt</PageTitle>
+
+<div class="container page-pad">
+    <header class="section-header section-header-row">
+        <div>
+            <a href="/admin" class="tagline">← Admin-Übersicht</a>
+            <h1>Kategorien</h1>
+            <p class="muted">@(_rows.Count == 0 ? "Noch keine Kategorien angelegt." : $"{_rows.Count} Kategorie(n).")</p>
+        </div>
+        <a href="/admin/kategorien/neu" class="btn btn-primary">+ Neue Kategorie</a>
+    </header>
+
+    @if (_message is not null)
+    {
+        <div class="@(_messageIsError ? "alert alert-error" : "alert alert-success")">@_message</div>
+    }
+
+    @if (_rows.Count == 0)
+    {
+        <div class="empty-state">
+            <p>Noch keine Kategorien. Leg deine erste an – z. B. „Amigurumi", „Heimdeko", „Accessoires".</p>
+        </div>
+    }
+    else
+    {
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Sortierung</th>
+                    <th>Produkte</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in _rows)
+                {
+                    <tr>
+                        <td><strong>@row.Category.Name</strong></td>
+                        <td><code>@row.Category.Slug</code></td>
+                        <td>@row.Category.SortOrder</td>
+                        <td>@row.ProductCount</td>
+                        <td class="row-actions">
+                            <a href="@($"/admin/kategorien/{row.Category.Id}/bearbeiten")" class="btn btn-sm btn-outline">Bearbeiten</a>
+                            <button class="btn btn-sm link-destructive" @onclick="() => Delete(row.Category.Id)" disabled="@_pending">Löschen</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<(Category Category, int ProductCount)> _rows = new();
+    private bool _pending;
+    private string? _message;
+    private bool _messageIsError;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load() => _rows = await CategoryService.ListAllWithCountsAsync();
+
+    private async Task Delete(string id)
+    {
+        _pending = true;
+        _message = null;
+        try
+        {
+            await CategoryService.DeleteAsync(id);
+            _message = "Kategorie gelöscht.";
+            _messageIsError = false;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _messageIsError = true;
+        }
+        finally
+        {
+            _pending = false;
+        }
+    }
+}

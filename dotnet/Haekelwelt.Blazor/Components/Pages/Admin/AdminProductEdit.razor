@@ -1,0 +1,205 @@
+@page "/admin/produkte/neu"
+@page "/admin/produkte/{Id}/bearbeiten"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+@inject NavigationManager Nav
+
+<PageTitle>@(_isNew ? "Neues Produkt" : "Produkt bearbeiten") · Admin · Häkelwelt</PageTitle>
+
+<div class="container page-pad narrow">
+    <header class="section-header">
+        <a href="/admin/produkte" class="tagline">← Produkte</a>
+        <h1>@(_isNew ? "Neues Produkt" : "Produkt bearbeiten")</h1>
+    </header>
+
+    @if (_categories.Count == 0)
+    {
+        <div class="alert alert-error">
+            Du musst erst mindestens eine Kategorie anlegen. <a href="/admin/kategorien/neu">Jetzt anlegen</a>
+        </div>
+    }
+    else
+    {
+        @if (_error is not null)
+        {
+            <div class="alert alert-error">@_error</div>
+        }
+
+        <EditForm Model="_form" OnValidSubmit="Save" class="checkout-form" FormName="prod-edit">
+            <DataAnnotationsValidator />
+
+            <label>Titel
+                <InputText @bind-Value="_form.Title" required />
+            </label>
+            <ValidationMessage For="() => _form.Title" />
+
+            <label>Slug (für die URL; leer lassen für Auto)
+                <InputText @bind-Value="_form.Slug" placeholder="@_autoSlug" />
+            </label>
+
+            <label>Beschreibung
+                <InputTextArea @bind-Value="_form.Description" rows="8" required />
+            </label>
+            <ValidationMessage For="() => _form.Description" />
+
+            <div class="form-row">
+                <label>Preis in € (inkl. MwSt.)
+                    <InputNumber @bind-Value="_form.PriceEur" step="0.01" required />
+                </label>
+                <label>Bestand (Stück)
+                    <InputNumber @bind-Value="_form.Stock" required />
+                </label>
+            </div>
+
+            <div class="form-row">
+                <label>Kategorie
+                    <InputSelect @bind-Value="_form.CategoryId">
+                        @foreach (var c in _categories)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </InputSelect>
+                </label>
+                <label>MwSt-Satz
+                    <InputSelect @bind-Value="_form.TaxRate">
+                        <option value="@TaxRate.Standard">Standard (19 %)</option>
+                        <option value="@TaxRate.Reduced">Ermäßigt (7 %)</option>
+                    </InputSelect>
+                </label>
+            </div>
+
+            <label>Bild-URL (öffentlich erreichbares Bild, z. B. von Unsplash oder eigenem Server)
+                <InputText @bind-Value="_form.ImageUrl" placeholder="https://..." />
+            </label>
+            <label>Bild-Alt-Text (für Barrierefreiheit, optional)
+                <InputText @bind-Value="_form.ImageAlt" />
+            </label>
+
+            <label class="checkbox">
+                <InputCheckbox @bind-Value="_form.IsActive" />
+                <span>Produkt im Shop anzeigen</span>
+            </label>
+
+            <div class="action-row">
+                <button type="submit" class="btn btn-primary" disabled="@_pending">
+                    @(_pending ? "…" : (_isNew ? "Anlegen" : "Speichern"))
+                </button>
+                <a href="/admin/produkte" class="btn btn-outline">Abbrechen</a>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [SupplyParameterFromForm] private FormModel _form { get; set; } = new();
+
+    private List<Category> _categories = new();
+    private bool _isNew => string.IsNullOrEmpty(Id);
+    private bool _pending;
+    private string? _error;
+    private string _autoSlug = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _categories = await CategoryService.ListAllAsync();
+
+        if (!_isNew && string.IsNullOrEmpty(_form.Title))
+        {
+            var p = await ProductService.GetByIdAsync(Id!);
+            if (p is not null)
+            {
+                _form.Title = p.Title;
+                _form.Slug = p.Slug;
+                _form.Description = p.Description;
+                _form.PriceEur = p.PriceCents / 100m;
+                _form.Stock = p.Stock;
+                _form.CategoryId = p.CategoryId;
+                _form.TaxRate = p.TaxRate;
+                _form.IsActive = p.IsActive;
+                var img = p.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
+                _form.ImageUrl = img?.Url;
+                _form.ImageAlt = img?.Alt;
+            }
+        }
+        else if (_isNew && string.IsNullOrEmpty(_form.CategoryId) && _categories.Count > 0)
+        {
+            _form.CategoryId = _categories[0].Id;
+        }
+
+        _autoSlug = CategoryService.NormalizeSlug(_form.Title ?? "");
+    }
+
+    private async Task Save()
+    {
+        _pending = true;
+        _error = null;
+        try
+        {
+            if (_form.PriceEur < 0) throw new InvalidOperationException("Preis darf nicht negativ sein.");
+            if (_form.Stock < 0) throw new InvalidOperationException("Bestand darf nicht negativ sein.");
+            if (string.IsNullOrWhiteSpace(_form.CategoryId)) throw new InvalidOperationException("Bitte eine Kategorie wählen.");
+
+            var slug = string.IsNullOrWhiteSpace(_form.Slug)
+                ? CategoryService.NormalizeSlug(_form.Title)
+                : _form.Slug;
+            var priceCents = (int)Math.Round(_form.PriceEur * 100m);
+
+            if (_isNew)
+            {
+                await ProductService.CreateAsync(new Product
+                {
+                    Title = _form.Title.Trim(),
+                    Slug = slug,
+                    Description = _form.Description.Trim(),
+                    PriceCents = priceCents,
+                    Stock = _form.Stock,
+                    CategoryId = _form.CategoryId,
+                    TaxRate = _form.TaxRate,
+                    IsActive = _form.IsActive,
+                }, _form.ImageUrl, _form.ImageAlt);
+            }
+            else
+            {
+                await ProductService.UpdateAsync(Id!, p =>
+                {
+                    p.Title = _form.Title.Trim();
+                    p.Slug = slug;
+                    p.Description = _form.Description.Trim();
+                    p.PriceCents = priceCents;
+                    p.Stock = _form.Stock;
+                    p.CategoryId = _form.CategoryId;
+                    p.TaxRate = _form.TaxRate;
+                    p.IsActive = _form.IsActive;
+                }, _form.ImageUrl, _form.ImageAlt);
+            }
+            Nav.NavigateTo("/admin/produkte");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _pending = false;
+        }
+    }
+
+    public class FormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(2)]
+        public string Title { get; set; } = "";
+        public string Slug { get; set; } = "";
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(10)]
+        public string Description { get; set; } = "";
+        public decimal PriceEur { get; set; }
+        public int Stock { get; set; }
+        public string CategoryId { get; set; } = "";
+        public TaxRate TaxRate { get; set; } = TaxRate.Standard;
+        public bool IsActive { get; set; } = true;
+        public string? ImageUrl { get; set; }
+        public string? ImageAlt { get; set; }
+    }
+}

@@ -62,6 +62,7 @@ builder.Services.AddRazorComponents()
 // App-Services
 builder.Services.AddScoped<PricingService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<WishlistService>();
 builder.Services.AddScoped<OrderService>();

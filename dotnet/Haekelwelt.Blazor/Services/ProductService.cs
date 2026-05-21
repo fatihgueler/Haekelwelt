@@ -88,4 +88,115 @@ public class ProductService(ApplicationDbContext db)
             .OrderByDescending(p => p.CreatedAt)
             .Take(take)
             .ToListAsync(ct);
+
+    // ---------- Admin-CRUD ----------
+
+    public Task<List<Product>> ListAllForAdminAsync(CancellationToken ct = default) =>
+        db.Products
+            .Include(p => p.Images.OrderBy(i => i.SortOrder).Take(1))
+            .Include(p => p.Category)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync(ct);
+
+    public Task<Product?> GetByIdAsync(string id, CancellationToken ct = default) =>
+        db.Products
+            .Include(p => p.Images.OrderBy(i => i.SortOrder))
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
+
+    public async Task<Product> CreateAsync(
+        Product product,
+        string? imageUrl,
+        string? imageAlt,
+        CancellationToken ct = default)
+    {
+        product.Slug = CategoryService.NormalizeSlug(product.Slug);
+        if (await db.Products.AnyAsync(p => p.Slug == product.Slug, ct))
+        {
+            throw new InvalidOperationException($"Slug \"{product.Slug}\" ist bereits vergeben.");
+        }
+        product.CreatedAt = DateTime.UtcNow;
+        product.UpdatedAt = DateTime.UtcNow;
+        product.Images.Clear();
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            product.Images.Add(new ProductImage
+            {
+                Url = imageUrl.Trim(),
+                Alt = string.IsNullOrWhiteSpace(imageAlt) ? product.Title : imageAlt.Trim(),
+                SortOrder = 0,
+            });
+        }
+        db.Products.Add(product);
+        await db.SaveChangesAsync(ct);
+        return product;
+    }
+
+    public async Task<Product> UpdateAsync(
+        string id,
+        Action<Product> mutate,
+        string? imageUrl,
+        string? imageAlt,
+        CancellationToken ct = default)
+    {
+        var existing = await db.Products
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == id, ct)
+            ?? throw new InvalidOperationException("Produkt nicht gefunden.");
+
+        mutate(existing);
+        existing.Slug = CategoryService.NormalizeSlug(existing.Slug);
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        if (await db.Products.AnyAsync(p => p.Slug == existing.Slug && p.Id != id, ct))
+        {
+            throw new InvalidOperationException($"Slug \"{existing.Slug}\" ist bereits vergeben.");
+        }
+
+        // Bild updaten: einfaches Modell – immer das erste Bild ersetzen.
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            var first = existing.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
+            if (first is null)
+            {
+                existing.Images.Add(new ProductImage
+                {
+                    Url = imageUrl.Trim(),
+                    Alt = string.IsNullOrWhiteSpace(imageAlt) ? existing.Title : imageAlt.Trim(),
+                    SortOrder = 0,
+                });
+            }
+            else
+            {
+                first.Url = imageUrl.Trim();
+                first.Alt = string.IsNullOrWhiteSpace(imageAlt) ? existing.Title : imageAlt.Trim();
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+        return existing;
+    }
+
+    public async Task DeleteAsync(string id, CancellationToken ct = default)
+    {
+        var existing = await db.Products
+            .Include(p => p.OrderItems)
+            .FirstOrDefaultAsync(p => p.Id == id, ct)
+            ?? throw new InvalidOperationException("Produkt nicht gefunden.");
+
+        // Wenn das Produkt bereits in Bestellungen referenziert ist, lieber
+        // deaktivieren statt löschen (Order-Snapshot bleibt erhalten,
+        // Position taucht aber nicht mehr im Shop auf).
+        if (existing.OrderItems.Count > 0)
+        {
+            existing.IsActive = false;
+            existing.Stock = 0;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            db.Products.Remove(existing);
+        }
+        await db.SaveChangesAsync(ct);
+    }
 }

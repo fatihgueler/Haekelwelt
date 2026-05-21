@@ -35,27 +35,30 @@
     <div class="feature"><h3>Gratisversand ab 50 €</h3><p>Plastikfrei verpackt mit DHL.</p></div>
 </section>
 
-<section class="band">
-    <div class="container">
-        <header class="section-header">
-            <span class="tagline">Kategorien</span>
-            <h2>Stöbere durch unsere Welten</h2>
-        </header>
-        <div class="category-grid">
-            @foreach (var cat in _categories)
-            {
-                <a href="@($"/kategorie/{cat.Slug}")" class="category-card">
-                    <h3>@cat.Name</h3>
-                    @if (!string.IsNullOrEmpty(cat.Description))
-                    {
-                        <p>@cat.Description</p>
-                    }
-                    <span class="link">Entdecken →</span>
-                </a>
-            }
+@if (_categories.Count > 0)
+{
+    <section class="band">
+        <div class="container">
+            <header class="section-header">
+                <span class="tagline">Kategorien</span>
+                <h2>Stöbere durch unsere Welten</h2>
+            </header>
+            <div class="category-grid">
+                @foreach (var cat in _categories)
+                {
+                    <a href="@($"/kategorie/{cat.Slug}")" class="category-card">
+                        <h3>@cat.Name</h3>
+                        @if (!string.IsNullOrEmpty(cat.Description))
+                        {
+                            <p>@cat.Description</p>
+                        }
+                        <span class="link">Entdecken →</span>
+                    </a>
+                }
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+}
 
 <section class="container">
     <header class="section-header section-header-row">
@@ -63,14 +66,33 @@
             <span class="tagline">Neu im Shop</span>
             <h2>Frisch eingetroffen</h2>
         </div>
-        <a href="/produkte" class="link">Alle Produkte →</a>
-    </header>
-    <div class="product-grid">
-        @foreach (var p in _featured)
+        @if (_featured.Count > 0)
         {
-            <ProductCard Product="p" InitialInWishlist="_wishlist.Contains(p.Id)" />
+            <a href="/produkte" class="link">Alle Produkte →</a>
         }
-    </div>
+    </header>
+
+    @if (_featured.Count == 0)
+    {
+        <div class="empty-state empty-state-block">
+            <h3>Bald geht es los.</h3>
+            <p class="muted">Aktuell sind noch keine Produkte eingestellt. Schau bald wieder vorbei!</p>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <a href="/admin" class="btn btn-primary">Im Admin-Bereich Produkte anlegen</a>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    }
+    else
+    {
+        <div class="product-grid">
+            @foreach (var p in _featured)
+            {
+                <ProductCard Product="p" InitialInWishlist="_wishlist.Contains(p.Id)" />
+            }
+        </div>
+    }
 </section>
 
 @code {

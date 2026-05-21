@@ -32,12 +32,43 @@ dotnet run --project Haekelwelt.Blazor
 Erfordert **.NET 8 SDK** (`dotnet --version` zeigt `8.x`).
 Download: https://dotnet.microsoft.com/download/dotnet/8.0
 
-## Test-Accounts (nur Dev)
+## Was nach dem ersten Start passiert
 
-| Rolle    | E-Mail                  | Passwort       |
-| -------- | ----------------------- | -------------- |
-| Admin    | admin@haekelwelt.local  | `Admin123!`    |
-| Kunde    | kunde@haekelwelt.local  | `Kunde123!`    |
+Beim Start sind die DB **leer** – nur eine einzelne Admin-Anmeldung wird angelegt,
+damit du dich einloggen und Inhalte pflegen kannst. **Keine Beispiel-Produkte,
+keine Kategorien, keine Testkund:innen.**
+
+| Standard-Admin-Login (bitte sofort ändern!)  |                 |
+| -------------------------------------------- | --------------- |
+| E-Mail                                       | `admin@haekelwelt.local` |
+| Passwort                                     | `Admin123!`     |
+
+Eigene Admin-Daten überschreiben (empfohlen für Production), in
+`appsettings.Development.json` oder als Environment-Variable:
+
+```json
+{
+  "Admin": {
+    "Email": "deine@email.de",
+    "Password": "DeinSicheresPasswort1!"
+  }
+}
+```
+
+Bestandskund:innen registrieren sich selbst über `/register`.
+
+## Workflow für die Shop-Inhaber:in
+
+1. Mit dem Admin-Login einloggen → oben rechts erscheint **„Admin"**.
+2. Unter **/admin/kategorien** mindestens eine Kategorie anlegen (z. B. „Amigurumi",
+   „Heimdeko"). Slug wird automatisch aus dem Namen erzeugt.
+3. Unter **/admin/produkte** Produkte anlegen: Titel, Beschreibung, Preis in €,
+   Bestand, Kategorie, Bild-URL.
+4. Sobald **„Im Shop anzeigen"** angehakt ist und Bestand > 0, erscheint
+   das Produkt im Storefront unter `/produkte` und auf der Startseite.
+
+Produkte mit bereits getätigten Bestellungen werden beim Löschen automatisch
+nur deaktiviert (`IsActive = false`) – die Bestell-Historie bleibt intakt.
 
 ## Architektur
 

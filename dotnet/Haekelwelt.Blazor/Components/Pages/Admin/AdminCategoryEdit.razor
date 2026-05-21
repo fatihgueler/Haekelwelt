@@ -1,0 +1,124 @@
+@page "/admin/kategorien/neu"
+@page "/admin/kategorien/{Id}/bearbeiten"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@inject CategoryService CategoryService
+@inject NavigationManager Nav
+
+<PageTitle>@(_isNew ? "Neue Kategorie" : "Kategorie bearbeiten") · Admin · Häkelwelt</PageTitle>
+
+<div class="container page-pad narrow">
+    <header class="section-header">
+        <a href="/admin/kategorien" class="tagline">← Kategorien</a>
+        <h1>@(_isNew ? "Neue Kategorie" : "Kategorie bearbeiten")</h1>
+    </header>
+
+    @if (_error is not null)
+    {
+        <div class="alert alert-error">@_error</div>
+    }
+
+    <EditForm Model="_form" OnValidSubmit="Save" class="checkout-form" FormName="cat-edit">
+        <DataAnnotationsValidator />
+
+        <label>Name
+            <InputText @bind-Value="_form.Name" required />
+        </label>
+        <ValidationMessage For="() => _form.Name" />
+
+        <label>Slug (für die URL, z. B. „amigurumi"; leer lassen für Auto)
+            <InputText @bind-Value="_form.Slug" placeholder="@_autoSlug" />
+        </label>
+
+        <label>Beschreibung (optional)
+            <InputTextArea @bind-Value="_form.Description" rows="3" />
+        </label>
+
+        <label>Sortier-Reihenfolge (kleiner = weiter vorn)
+            <InputNumber @bind-Value="_form.SortOrder" />
+        </label>
+
+        <div class="action-row">
+            <button type="submit" class="btn btn-primary" disabled="@_pending">
+                @(_pending ? "…" : (_isNew ? "Anlegen" : "Speichern"))
+            </button>
+            <a href="/admin/kategorien" class="btn btn-outline">Abbrechen</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [SupplyParameterFromForm] private FormModel _form { get; set; } = new();
+
+    private bool _isNew => string.IsNullOrEmpty(Id);
+    private bool _pending;
+    private string? _error;
+    private string _autoSlug = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_isNew && string.IsNullOrEmpty(_form.Name))
+        {
+            var c = await CategoryService.GetByIdAsync(Id!);
+            if (c is not null)
+            {
+                _form.Name = c.Name;
+                _form.Slug = c.Slug;
+                _form.Description = c.Description;
+                _form.SortOrder = c.SortOrder;
+            }
+        }
+        _autoSlug = CategoryService.NormalizeSlug(_form.Name ?? "");
+    }
+
+    private async Task Save()
+    {
+        _pending = true;
+        _error = null;
+        try
+        {
+            var slug = string.IsNullOrWhiteSpace(_form.Slug)
+                ? CategoryService.NormalizeSlug(_form.Name)
+                : _form.Slug;
+            if (_isNew)
+            {
+                await CategoryService.CreateAsync(new Category
+                {
+                    Name = _form.Name.Trim(),
+                    Slug = slug,
+                    Description = string.IsNullOrWhiteSpace(_form.Description) ? null : _form.Description.Trim(),
+                    SortOrder = _form.SortOrder,
+                });
+            }
+            else
+            {
+                await CategoryService.UpdateAsync(Id!, c =>
+                {
+                    c.Name = _form.Name.Trim();
+                    c.Slug = slug;
+                    c.Description = string.IsNullOrWhiteSpace(_form.Description) ? null : _form.Description.Trim();
+                    c.SortOrder = _form.SortOrder;
+                });
+            }
+            Nav.NavigateTo("/admin/kategorien");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _pending = false;
+        }
+    }
+
+    public class FormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required, System.ComponentModel.DataAnnotations.MinLength(2)]
+        public string Name { get; set; } = "";
+        public string Slug { get; set; } = "";
+        public string? Description { get; set; }
+        public int SortOrder { get; set; }
+    }
+}

@@ -15,6 +15,11 @@
             <input type="search" name="q" placeholder="Suche…" aria-label="Produktsuche" />
         </form>
         <div class="site-header-actions">
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <a href="/admin" title="Admin-Bereich">Admin</a>
+                </Authorized>
+            </AuthorizeView>
             <AuthorizeView>
                 <Authorized>
                     <a href="/konto" title="Mein Konto">Konto</a>
