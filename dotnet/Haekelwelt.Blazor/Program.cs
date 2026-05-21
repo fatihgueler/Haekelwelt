@@ -1,3 +1,4 @@
+using Haekelwelt.Blazor;
 using Haekelwelt.Blazor.Components;
 using Haekelwelt.Blazor.Data;
 using Haekelwelt.Blazor.Data.Entities;
@@ -17,8 +18,6 @@ var connectionString =
 
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseSqlite(connectionString));
-
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
