@@ -73,24 +73,21 @@ export default async function HomePage() {
         />
         <div className="container relative grid items-center gap-8 pb-10 pt-10 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-16 lg:pt-16">
           <div className="space-y-6">
-            <p
-              className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm font-semibold text-primary shadow-soft"
-              {...reveal(0)}
-            >
+            <p className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm font-semibold text-primary shadow-soft">
               <Heart className="h-4 w-4 fill-current" aria-hidden /> Handgehäkelt mit Liebe
             </p>
-            <h1 className="display text-balance" {...reveal(1)}>
+            <h1 className="display text-balance">
               Kleine Schätze,{' '}
               <span className="text-primary underline decoration-cat-heimdeko-deco decoration-wavy decoration-[3px] underline-offset-[0.22em] [text-decoration-skip-ink:none]">
                 Masche für Masche.
               </span>
             </h1>
-            <p className="max-w-xl text-pretty text-lg text-muted-foreground" {...reveal(2)}>
+            <p className="max-w-xl text-pretty text-lg text-muted-foreground">
               Kuscheltiere, Decken, Mützen und Babyschuhe – jedes Stück häkeln wir von Hand in
               unserer kleinen Werkstatt. Aus guter Wolle, mit viel Geduld und so bunt, dass es gute
               Laune macht.
             </p>
-            <div className="flex flex-wrap gap-3" {...reveal(3)}>
+            <div className="flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link href="/produkte">
                   Kollektion entdecken <ArrowRight aria-hidden />
@@ -100,10 +97,7 @@ export default async function HomePage() {
                 <Link href="/ueber-uns">Die Werkstatt kennenlernen</Link>
               </Button>
             </div>
-            <ul
-              className="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-sm font-medium text-foreground"
-              {...reveal(4)}
-            >
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-sm font-medium text-foreground">
               <li className="inline-flex items-center gap-2">
                 <Truck className="h-4 w-4 text-success" aria-hidden /> Gratisversand ab 50 €
               </li>

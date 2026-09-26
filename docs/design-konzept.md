@@ -1,6 +1,6 @@
 # Häkelwelt – Design-Konzept & Befund-Analyse (Phase 0)
 
-> Stand: 26.09.2026 · Status: **Entwurf, wartet auf Freigabe**
+> Stand: 26.09.2026 · Status: **freigegeben und umgesetzt** (Ergebnis: `docs/abschlussbericht.md`)
 > Grundlage: Code-Analyse des Repos (Branch `claude/pensive-shannon-15c9xh`) und
 > automatisierter Live-Test von https://haekelwelt-production.up.railway.app
 > (Playwright, 375 px und 1440 px, Light Mode).

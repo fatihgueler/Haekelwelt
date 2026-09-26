@@ -113,7 +113,7 @@ export async function ReviewsSection({
                 Bewertungen sind unseren Käufer:innen vorbehalten. Bitte{' '}
                 <Link
                   href={`/login?next=/produkte/${productSlug}`}
-                  className="text-primary underline-offset-2 hover:underline"
+                  className="font-medium text-primary underline underline-offset-2"
                 >
                   melde dich an
                 </Link>

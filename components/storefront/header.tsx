@@ -59,7 +59,7 @@ export async function Header() {
             className="hidden sm:inline-flex"
             aria-label="Wunschliste"
           >
-            <Link href="/konto/wunschliste">
+            <Link href="/konto/wunschliste" prefetch={false}>
               <Heart className="h-5 w-5" />
             </Link>
           </Button>

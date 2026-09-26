@@ -37,7 +37,9 @@ export default async function CartPage() {
                 <Link href="/produkte">Kollektion entdecken</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/konto/wunschliste">Zur Wunschliste</Link>
+                <Link href="/konto/wunschliste" prefetch={false}>
+                  Zur Wunschliste
+                </Link>
               </Button>
             </>
           }
