@@ -5,7 +5,6 @@ import { auth } from '@/auth';
 import { getNavCategories } from '@/lib/categories';
 import { getCart } from '@/lib/cart';
 import { priceCart, SHIPPING_DE_FREE_FROM_CENTS } from '@/lib/pricing';
-import { formatPriceCents } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
@@ -39,11 +38,6 @@ export async function Header() {
       )
     : { subtotalCents: 0, freeShippingMissingCents: SHIPPING_DE_FREE_FROM_CENTS };
 
-  const shippingHint =
-    pricing.freeShippingMissingCents !== null && pricing.freeShippingMissingCents > 0
-      ? `Noch ${formatPriceCents(pricing.freeShippingMissingCents)} bis zum Gratisversand in Deutschland.`
-      : 'Versand inklusive – freu dich auf dein Paket.';
-
   const navCategories = categories.map((c) => ({ slug: c.slug, name: c.name, tone: c.tone }));
 
   return (
@@ -54,7 +48,7 @@ export async function Header() {
 
         <DesktopNav categories={navCategories} />
 
-        <SearchBar className="ml-auto hidden w-full max-w-[16rem] lg:flex" />
+        <SearchBar className="ml-auto hidden w-full min-w-0 max-w-[15rem] flex-1 lg:flex" />
 
         <div className="ml-auto flex items-center gap-0.5 lg:ml-2">
           <ThemeToggle />
@@ -63,7 +57,7 @@ export async function Header() {
             variant="ghost"
             size="icon"
             className="hidden sm:inline-flex"
-            aria-label="Merkliste"
+            aria-label="Wunschliste"
           >
             <Link href="/konto/wunschliste">
               <Heart className="h-5 w-5" />
@@ -80,11 +74,7 @@ export async function Header() {
               <User className="h-5 w-5" />
             </Link>
           </Button>
-          <CartDrawer
-            items={drawerItems}
-            subtotalCents={pricing.subtotalCents}
-            shippingHint={shippingHint}
-          />
+          <CartDrawer items={drawerItems} subtotalCents={pricing.subtotalCents} />
         </div>
       </div>
     </header>

@@ -74,11 +74,15 @@ export function ContactForm() {
           rows={6}
           minLength={20}
           maxLength={4000}
-          className="flex w-full rounded-xl border border-input bg-background px-4 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full rounded-xl border border-input bg-card px-4 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
           placeholder="Wie können wir dir helfen?"
+          aria-invalid={Boolean(state.fieldErrors?.body?.[0])}
+          aria-describedby={state.fieldErrors?.body?.[0] ? 'contact-body-error' : undefined}
         />
         {state.fieldErrors?.body?.[0] ? (
-          <p className="text-xs text-destructive">{state.fieldErrors.body[0]}</p>
+          <p id="contact-body-error" role="alert" className="text-xs text-destructive">
+            {state.fieldErrors.body[0]}
+          </p>
         ) : null}
       </div>
 
@@ -86,7 +90,7 @@ export function ContactForm() {
         <Checkbox id="contact-privacy" name="acceptPrivacy" />
         <Label htmlFor="contact-privacy" className="cursor-pointer text-xs leading-relaxed">
           Ich habe die{' '}
-          <a href="/datenschutz" className="underline-offset-2 hover:underline">
+          <a href="/datenschutz" className="font-medium text-primary underline underline-offset-2">
             Datenschutzerklärung
           </a>{' '}
           zur Kenntnis genommen.
@@ -128,8 +132,13 @@ function Field({
         autoComplete={autoComplete}
         required={required}
         aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${id}-error` : undefined}
       />
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -138,8 +147,8 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" disabled={pending}>
-      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-      Nachricht senden
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+      {pending ? 'Wird gesendet…' : 'Nachricht senden'}
     </Button>
   );
 }

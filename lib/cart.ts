@@ -11,7 +11,7 @@ const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 Tage
 const CART_TTL_DAYS = 30;
 
 export type CartItemWithProduct = CartItem & {
-  product: Product & { images: ProductImage[] };
+  product: Product & { images: ProductImage[]; category: { slug: string } };
 };
 
 export type CartWithItems = Cart & { items: CartItemWithProduct[] };
@@ -53,6 +53,7 @@ const cartInclude = {
       product: {
         include: {
           images: { orderBy: { sortOrder: 'asc' as const }, take: 1 },
+          category: { select: { slug: true } },
         },
       },
     },

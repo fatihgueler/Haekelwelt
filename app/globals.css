@@ -272,11 +272,11 @@
 
   /* Dezente Granny-Square-Textur als Hintergrund (Data-URI, CSP: img-src data:) */
   .bg-granny {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect x='8' y='8' width='40' height='40' rx='6' fill='none' stroke='%239D254D' stroke-opacity='.07' stroke-width='3'/%3E%3Crect x='18' y='18' width='20' height='20' rx='4' fill='%239D254D' fill-opacity='.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect x='8' y='8' width='40' height='40' rx='6' fill='none' stroke='%239D254D' stroke-opacity='.06' stroke-width='3'/%3E%3Crect x='18' y='18' width='20' height='20' rx='4' fill='%239D254D' fill-opacity='.03'/%3E%3C/svg%3E");
   }
 
   .dark .bg-granny {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect x='8' y='8' width='40' height='40' rx='6' fill='none' stroke='%23F391B1' stroke-opacity='.07' stroke-width='3'/%3E%3Crect x='18' y='18' width='20' height='20' rx='4' fill='%23F391B1' fill-opacity='.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect x='8' y='8' width='40' height='40' rx='6' fill='none' stroke='%23F391B1' stroke-opacity='.035' stroke-width='3'/%3E%3Crect x='18' y='18' width='20' height='20' rx='4' fill='%23F391B1' fill-opacity='.02'/%3E%3C/svg%3E");
   }
 
   /* Maschen-Aufzählung (kleines „V“) */

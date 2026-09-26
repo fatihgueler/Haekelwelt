@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
 import { SmartImage as Image } from '@/components/shared/smart-image';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CartLineControls } from '@/components/storefront/cart-line-controls';
 import { DiscountInput } from '@/components/storefront/discount-input';
+import { EmptyState, FreeShippingMeter, TrustList } from '@/components/storefront/shop-bits';
+import { getCategoryTone, toneClasses } from '@/lib/category-theme';
 import { getCart } from '@/lib/cart';
 import { resolveAppliedDiscount } from '@/lib/discount';
 import { priceCart } from '@/lib/pricing';
-import { formatPriceCents } from '@/lib/utils';
+import { cn, formatPriceCents } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Warenkorb',
@@ -25,15 +26,24 @@ export default async function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container flex min-h-[60vh] flex-col items-center justify-center gap-6 py-16 text-center">
-        <ShoppingBag className="h-12 w-12 text-muted-foreground/60" />
-        <h1 className="font-serif text-3xl tracking-tight">Dein Warenkorb ist noch leer</h1>
-        <p className="max-w-md text-muted-foreground">
-          Stöbere durch unsere handgefertigten Stücke und finde etwas, das deinen Alltag schmückt.
-        </p>
-        <Button asChild size="lg">
-          <Link href="/produkte">Zur Kollektion</Link>
-        </Button>
+      <div className="container py-12 lg:py-20">
+        <EmptyState
+          headingLevel="h1"
+          title="Dein Warenkorb ist noch leer"
+          className="mx-auto max-w-2xl"
+          action={
+            <>
+              <Button asChild size="lg">
+                <Link href="/produkte">Kollektion entdecken</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/konto/wunschliste">Zur Wunschliste</Link>
+              </Button>
+            </>
+          }
+        >
+          Stöbere durch die handgehäkelten Stücke und finde etwas, das deinen Alltag schöner macht.
+        </EmptyState>
       </div>
     );
   }
@@ -53,10 +63,11 @@ export default async function CartPage() {
   return (
     <div className="container py-12 lg:py-16">
       <header className="mb-8">
-        <h1 className="font-serif text-4xl tracking-tight">Warenkorb</h1>
+        <p className="eyebrow">Fast geschafft</p>
+        <h1 className="mt-2">Dein Warenkorb</h1>
         <p className="mt-2 text-muted-foreground">
-          {items.length} Position{items.length === 1 ? '' : 'en'} – die endgültige Adresse legst du
-          beim Checkout fest.
+          {items.length === 1 ? '1 Lieblingsstück' : `${items.length} Lieblingsstücke`} – die
+          Lieferadresse gibst du im nächsten Schritt an.
         </p>
       </header>
 
@@ -65,15 +76,20 @@ export default async function CartPage() {
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:p-6"
+              className="flex gap-4 rounded-3xl border border-border bg-card p-4 shadow-soft sm:p-5"
             >
-              <div className="relative h-32 w-full overflow-hidden rounded-xl bg-muted sm:h-32 sm:w-32 sm:shrink-0">
+              <div
+                className={cn(
+                  'relative aspect-[4/5] w-24 shrink-0 overflow-hidden rounded-2xl sm:w-28',
+                  toneClasses[getCategoryTone(item.product.category.slug)].surface,
+                )}
+              >
                 {item.product.images[0] ? (
                   <Image
                     src={item.product.images[0].url}
-                    alt={item.product.images[0].alt}
+                    alt=""
                     fill
-                    sizes="(max-width: 640px) 100vw, 128px"
+                    sizes="112px"
                     className="object-cover"
                   />
                 ) : null}
@@ -83,7 +99,7 @@ export default async function CartPage() {
                   <div>
                     <Link
                       href={`/produkte/${item.product.slug}`}
-                      className="font-serif text-lg leading-snug tracking-tight hover:text-primary"
+                      className="font-serif text-lg font-semibold leading-snug tracking-tight hover:text-primary"
                     >
                       {item.product.title}
                     </Link>
@@ -91,7 +107,7 @@ export default async function CartPage() {
                       {formatPriceCents(item.product.priceCents)} / Stück
                     </p>
                   </div>
-                  <p className="text-base font-semibold">
+                  <p className="text-base font-semibold tabular-nums">
                     {formatPriceCents(item.product.priceCents * item.quantity)}
                   </p>
                 </div>
@@ -106,15 +122,16 @@ export default async function CartPage() {
         </ul>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-serif text-xl tracking-tight">Bestellübersicht</h2>
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+            <h2 className="font-serif text-2xl sm:text-2xl">Bestellübersicht</h2>
+            <FreeShippingMeter subtotalCents={pricing.subtotalCents} className="mt-4" />
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Zwischensumme</dt>
                 <dd>{formatPriceCents(pricing.subtotalCents)}</dd>
               </div>
               {pricing.discountCents > 0 ? (
-                <div className="flex justify-between text-primary">
+                <div className="flex justify-between font-medium text-success">
                   <dt>Rabatt ({applied?.code.code})</dt>
                   <dd>−{formatPriceCents(pricing.discountCents)}</dd>
                 </div>
@@ -140,13 +157,6 @@ export default async function CartPage() {
               <DiscountInput appliedCode={applied?.code.code ?? null} />
             </div>
 
-            {pricing.freeShippingMissingCents && pricing.freeShippingMissingCents > 0 ? (
-              <p className="mt-3 rounded-xl bg-secondary/60 p-3 text-xs text-foreground">
-                Noch <strong>{formatPriceCents(pricing.freeShippingMissingCents)}</strong> bis zum
-                Gratisversand in Deutschland.
-              </p>
-            ) : null}
-
             <Button asChild size="lg" className="mt-6 w-full">
               <Link href="/checkout">Zur Kasse</Link>
             </Button>
@@ -154,6 +164,7 @@ export default async function CartPage() {
               Versand innerhalb der EU. Auslandsversand wird beim Checkout berechnet.
             </p>
           </div>
+          <TrustList compact className="rounded-3xl bg-secondary p-6" />
         </aside>
       </div>
     </div>

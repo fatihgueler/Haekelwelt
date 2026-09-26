@@ -16,21 +16,22 @@ export function NewsletterForm() {
   const [state, action] = useFormState(subscribeNewsletterAction, initial);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6">
-      <div className="mb-4 flex items-center gap-2 text-primary">
-        <Mail className="h-4 w-4" />
+    <div className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+      <div className="mb-3 flex items-center gap-2 text-primary">
+        <Mail className="h-4 w-4" aria-hidden />
         <h2 className="font-serif text-lg tracking-tight sm:text-lg">Newsletter</h2>
       </div>
       <p className="mb-4 text-sm text-muted-foreground">
-        Neue Stücke, kleine Werkstatt-Geschichten, gelegentlich ein Rabatt. Kein Spam, Abmeldung mit
+        Neue Stücke, kleine Werkstatt-Geschichten und ab und zu ein Rabatt. Kein Spam, Abmeldung mit
         einem Klick.
       </p>
 
       {state.message ? (
         <div
+          role={state.ok ? 'status' : 'alert'}
           className={`mb-4 rounded-xl border p-3 text-sm ${
             state.ok
-              ? 'border-primary/40 bg-primary/10 text-foreground'
+              ? 'border-success/40 bg-success-soft text-foreground'
               : 'border-destructive/40 bg-destructive/10 text-destructive'
           }`}
         >

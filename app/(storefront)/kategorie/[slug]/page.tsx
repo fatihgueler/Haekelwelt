@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
-import { db } from '@/lib/db';
+import { Button } from '@/components/ui/button';
+import { PicotDivider } from '@/components/illustrations/motifs';
+import { YarnBall } from '@/components/illustrations/yarn-ball';
 import { ProductCard } from '@/components/storefront/product-card';
+import { EmptyState } from '@/components/storefront/shop-bits';
+import { getNavCategories } from '@/lib/categories';
+import { getCategoryTone, getCoreCategory, toneClasses, toneWool } from '@/lib/category-theme';
+import { db } from '@/lib/db';
+import { cn } from '@/lib/utils';
 import { getWishlistProductIds } from '@/lib/wishlist';
-import { getCoreCategory } from '@/lib/category-theme';
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -47,61 +54,139 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Params) {
   const { slug } = await params;
-  const [category, wishlist] = await Promise.all([loadCategory(slug), getWishlistProductIds()]);
+  const [category, wishlist, allCategories] = await Promise.all([
+    loadCategory(slug),
+    getWishlistProductIds(),
+    getNavCategories(),
+  ]);
   if (!category) notFound();
 
-  return (
-    <div className="container py-12 lg:py-16">
-      <header className="mb-10 max-w-2xl space-y-2">
-        <Link href="/produkte" className="text-sm font-medium uppercase tracking-wide text-primary">
-          ← Alle Kategorien
-        </Link>
-        <h1 className="font-serif text-4xl tracking-tight">{category.name}</h1>
-        {category.description ? (
-          <p className="text-muted-foreground">{category.description}</p>
-        ) : null}
-      </header>
+  const tone = getCategoryTone(category.slug);
+  const t = toneClasses[tone];
+  const others = allCategories.filter((c) => c.slug !== category.slug);
+  const count = category.products.length;
 
-      {category.products.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border bg-card p-10 text-center">
-          <h2 className="font-serif text-2xl sm:text-2xl">Hier wird gerade noch gehäkelt.</h2>
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+  return (
+    <div className="pb-16">
+      <section className={cn('relative overflow-hidden', t.surface)}>
+        <div aria-hidden="true" className="bg-granny absolute inset-0 opacity-70" />
+        <div className="container relative grid items-center gap-6 py-10 sm:grid-cols-[1fr_auto] lg:py-14">
+          <div>
+            <nav aria-label="Brotkrumen" className="mb-4 text-sm">
+              <ol className="flex flex-wrap items-center gap-1 text-foreground/80">
+                <li>
+                  <Link href="/" className="underline-offset-4 hover:underline">
+                    Start
+                  </Link>
+                </li>
+                <li aria-hidden="true">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </li>
+                <li>
+                  <Link href="/produkte" className="underline-offset-4 hover:underline">
+                    Shop
+                  </Link>
+                </li>
+                <li aria-hidden="true">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </li>
+                <li aria-current="page" className="font-semibold text-foreground">
+                  {category.name}
+                </li>
+              </ol>
+            </nav>
+            <p className={cn('eyebrow', t.ink)}>Kategorie</p>
+            <h1 className="mt-2">{category.name}</h1>
+            {category.description ? (
+              <p className="mt-3 max-w-xl text-pretty text-lg text-foreground/80">
+                {category.description}
+              </p>
+            ) : null}
+            <p className={cn('mt-4 text-sm font-semibold', t.ink)}>
+              {count === 0 ? 'Gerade in Arbeit' : count === 1 ? '1 Unikat' : `${count} Unikate`}
+            </p>
+          </div>
+          <div aria-hidden="true" className="hidden items-end gap-2 sm:flex">
+            <YarnBall
+              wool={toneWool[tone]}
+              className="h-32 w-32 motion-safe:animate-bob-slow lg:h-40 lg:w-40"
+              tail
+            />
+          </div>
+        </div>
+      </section>
+      <PicotDivider flip className={cn('-mt-px', t.surfaceText)} />
+
+      <div className="container pt-8">
+        {count === 0 ? (
+          <EmptyState
+            title="Hier wird gerade noch gehäkelt."
+            action={
+              <Button asChild>
+                <Link href="/produkte">Zur ganzen Kollektion</Link>
+              </Button>
+            }
+          >
             In dieser Kategorie ist im Moment nichts verfügbar. Schau dich doch in der ganzen
             Kollektion um – oder komm bald wieder vorbei.
-          </p>
-          <Link
-            href="/produkte"
-            className="mt-6 inline-flex font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Zur ganzen Kollektion
-          </Link>
-        </div>
-      ) : (
-        <section aria-labelledby="category-products">
-          <h2 id="category-products" className="sr-only">
-            Produkte in {category.name}
-          </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {category.products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  title: product.title,
-                  priceCents: product.priceCents,
-                  imageUrl: product.images[0]?.url,
-                  imageAlt: product.images[0]?.alt,
-                  blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
-                  categoryName: category.name,
-                  stock: product.stock,
-                  inWishlist: wishlist.has(product.id),
-                }}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+          </EmptyState>
+        ) : (
+          <section aria-labelledby="category-products">
+            <h2 id="category-products" className="sr-only">
+              Produkte in {category.name}
+            </h2>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4">
+              {category.products.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  index={index}
+                  priority={index < 2}
+                  product={{
+                    id: product.id,
+                    slug: product.slug,
+                    title: product.title,
+                    priceCents: product.priceCents,
+                    imageUrl: product.images[0]?.url,
+                    imageAlt: product.images[0]?.alt,
+                    blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
+                    categoryName: category.name,
+                    categorySlug: category.slug,
+                    stock: product.stock,
+                    inWishlist: wishlist.has(product.id),
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {others.length > 0 ? (
+          <nav aria-labelledby="weitere-kategorien" className="mt-16">
+            <h2 id="weitere-kategorien" className="font-serif text-2xl sm:text-2xl">
+              Noch mehr Welten
+            </h2>
+            <ul className="mt-5 flex flex-wrap gap-3">
+              {others.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/kategorie/${c.slug}`}
+                    className={cn(
+                      'inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform motion-safe:hover:-translate-y-0.5',
+                      toneClasses[c.tone].surface,
+                    )}
+                  >
+                    <span
+                      className={cn('h-2.5 w-2.5 rounded-full', toneClasses[c.tone].dot)}
+                      aria-hidden
+                    />
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
+      </div>
     </div>
   );
 }

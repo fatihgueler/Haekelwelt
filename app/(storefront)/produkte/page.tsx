@@ -1,4 +1,10 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/storefront/shop-bits';
+import { getCategoryTone, toneClasses } from '@/lib/category-theme';
+import { cn } from '@/lib/utils';
 
 import { Pagination } from '@/components/storefront/pagination';
 import { ProductCard } from '@/components/storefront/product-card';
@@ -11,7 +17,8 @@ import { getWishlistProductIds } from '@/lib/wishlist';
 
 export const metadata: Metadata = {
   title: 'Alle Produkte',
-  description: 'Handgehäkelte Unikate aus unserer Werkstatt – mit Filtern, Suche und Sortierung.',
+  description:
+    'Handgehäkelte Unikate aus der Werkstatt: Amigurumi, Heimdeko, Accessoires und Babysachen – mit Suche, Filtern und Sortierung.',
 };
 
 export const dynamic = 'force-dynamic';
@@ -82,89 +89,122 @@ export default async function ProductsPage({
     slug: c.slug,
     name: c.name,
     count: c._count.products,
+    tone: getCategoryTone(c.slug),
   }));
 
+  const isFiltered = categorySlugs.length > 0 || Boolean(minCents || maxCents || inStockOnly);
+
   return (
-    <div className="container py-10 lg:py-14">
-      <header className="mb-8 space-y-2">
-        <p className="text-sm font-medium uppercase tracking-wide text-primary">Shop</p>
-        <h1 className="font-serif text-4xl tracking-tight">
-          {q ? `Suchergebnisse für „${q}"` : 'Alle Produkte'}
-        </h1>
-        <p className="text-muted-foreground">
-          {total === 0
-            ? 'Keine Treffer für die aktuelle Auswahl.'
-            : total === 1
-              ? '1 Produkt'
-              : `${total} Produkte`}
-          {categorySlugs.length > 0 || minCents || maxCents || inStockOnly ? ' (gefiltert)' : null}
-        </p>
-      </header>
+    <div className="pb-16">
+      <section className="bg-granny border-b border-border/60 bg-secondary/60">
+        <div className="container py-10 lg:py-14">
+          <p className="eyebrow">Shop</p>
+          <h1 className="mt-2">{q ? `Suchergebnisse für „${q}“` : 'Alle Lieblingsstücke'}</h1>
+          <p className="mt-3 max-w-2xl text-pretty text-muted-foreground">
+            {total === 0
+              ? 'Für diese Auswahl haben wir gerade nichts auf der Nadel.'
+              : `${total === 1 ? '1 handgehäkeltes Stück' : `${total} handgehäkelte Stücke`}${
+                  isFiltered ? ' passen zu deiner Auswahl' : ' – jedes ein Unikat'
+                }.`}
+          </p>
+          <nav aria-label="Kategorien" className="mt-6">
+            <ul className="flex flex-wrap gap-2">
+              {allCategories.map((c) => {
+                const tone = getCategoryTone(c.slug);
+                return (
+                  <li key={c.id}>
+                    <Link
+                      href={`/kategorie/${c.slug}`}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-full border-2 border-transparent bg-card px-4 text-sm font-semibold shadow-soft transition-colors hover:border-primary"
+                    >
+                      <span
+                        className={cn('h-2.5 w-2.5 rounded-full', toneClasses[tone].dot)}
+                        aria-hidden
+                      />
+                      {c.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
+      </section>
 
-      <div className="mb-6">
-        <SearchBar variant="inline" />
-      </div>
+      <div className="container pt-8">
+        <div className="mb-8 max-w-xl">
+          <SearchBar variant="inline" />
+        </div>
 
-      <div className="grid gap-10 lg:grid-cols-[260px_1fr] lg:gap-12">
-        <ProductFilters
-          categories={filterCategories}
-          priceMinCents={priceRange.min}
-          priceMaxCents={priceRange.max}
-          selectedCategories={categorySlugs}
-          selectedMin={minCents}
-          selectedMax={maxCents}
-          inStockOnly={inStockOnly}
-        />
+        <div className="grid gap-10 lg:grid-cols-[250px_1fr] lg:gap-12">
+          <ProductFilters
+            categories={filterCategories}
+            priceMinCents={priceRange.min}
+            priceMaxCents={priceRange.max}
+            selectedCategories={categorySlugs}
+            selectedMin={minCents}
+            selectedMax={maxCents}
+            inStockOnly={inStockOnly}
+          />
 
-        <section aria-labelledby="results-heading">
-          <h2 id="results-heading" className="sr-only">
-            Produkte
-          </h2>
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Seite {Math.min(page, pageCount)} von {pageCount}
-            </p>
-            <ProductSortSelect value={sort} />
-          </div>
-
-          {items.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
-              <p className="text-muted-foreground">
-                Wir konnten leider nichts finden. Probier es mit weniger Filtern oder einer anderen
-                Suche.
+          <section aria-labelledby="results-heading">
+            <h2 id="results-heading" className="sr-only">
+              Produkte
+            </h2>
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {total > 0 ? `Seite ${Math.min(page, pageCount)} von ${pageCount}` : null}
               </p>
+              <ProductSortSelect value={sort} />
             </div>
-          ) : (
-            <>
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {items.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={{
-                      id: product.id,
-                      slug: product.slug,
-                      title: product.title,
-                      priceCents: product.priceCents,
-                      imageUrl: product.images[0]?.url,
-                      imageAlt: product.images[0]?.alt,
-                      blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
-                      categoryName: product.category.name,
-                      stock: product.stock,
-                      inWishlist: wishlist.has(product.id),
-                    }}
-                  />
-                ))}
-              </div>
 
-              <Pagination
-                pathname="/produkte"
-                searchParams={sp}
-                page={page}
-                pageCount={pageCount}
-              />
-            </>
-          )}
-        </section>
+            {items.length === 0 ? (
+              <EmptyState
+                title={q ? 'Dazu haben wir leider nichts gefunden.' : 'Hier ist gerade nichts.'}
+                action={
+                  <Button asChild variant="secondary">
+                    <Link href="/produkte">Alle Filter zurücksetzen</Link>
+                  </Button>
+                }
+              >
+                Probier es mit weniger Filtern oder einem anderen Suchwort – oder stöbere einfach
+                durch alle Stücke.
+              </EmptyState>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 xl:grid-cols-3">
+                  {items.map((product, index) => (
+                    <ProductCard
+                      key={product.id}
+                      index={index}
+                      priority={index < 2}
+                      product={{
+                        id: product.id,
+                        slug: product.slug,
+                        title: product.title,
+                        priceCents: product.priceCents,
+                        imageUrl: product.images[0]?.url,
+                        imageAlt: product.images[0]?.alt,
+                        blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
+                        categoryName: product.category.name,
+                        categorySlug: product.category.slug,
+                        stock: product.stock,
+                        inWishlist: wishlist.has(product.id),
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <Pagination
+                  pathname="/produkte"
+                  searchParams={sp}
+                  page={page}
+                  pageCount={pageCount}
+                />
+              </>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

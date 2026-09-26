@@ -22,6 +22,8 @@ export function WishlistButton({
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
   const [active, setActive] = React.useState(initialInWishlist);
+  // Zähler statt Boolean, damit der Herz-Pop bei jedem Klick neu startet.
+  const [popKey, setPopKey] = React.useState(0);
 
   const onClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -30,7 +32,7 @@ export function WishlistButton({
       const res = await toggleWishlistAction({ productId });
       if (!res.ok) {
         if (res.requiresAuth) {
-          toast.error(res.error, {
+          toast.error('Melde dich kurz an, dann merken wir uns dein Lieblingsstück.', {
             action: { label: 'Anmelden', onClick: () => router.push('/login') },
           });
         } else {
@@ -39,14 +41,13 @@ export function WishlistButton({
         return;
       }
       setActive(res.inWishlist);
-      toast.success(
-        res.inWishlist ? 'Zur Wunschliste hinzugefügt.' : 'Von der Wunschliste entfernt.',
-      );
+      if (res.inWishlist) setPopKey((k) => k + 1);
+      toast.success(res.inWishlist ? 'Gemerkt! ♥' : 'Von der Wunschliste entfernt.');
     });
   };
 
-  const dim = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10';
-  const icon = size === 'sm' ? 'h-4 w-4' : 'h-4.5 w-4.5';
+  const dim = size === 'sm' ? 'h-10 w-10' : 'h-12 w-12';
+  const icon = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
 
   return (
     <button
@@ -54,16 +55,31 @@ export function WishlistButton({
       onClick={onClick}
       disabled={pending}
       aria-pressed={active}
-      aria-label={active ? 'Von der Wunschliste entfernen' : 'Zur Wunschliste hinzufügen'}
+      aria-label={active ? 'Von der Wunschliste entfernen' : 'Auf die Wunschliste'}
       className={cn(
-        'inline-flex items-center justify-center rounded-full border border-border bg-background/90 backdrop-blur transition-all',
-        'hover:border-primary hover:text-primary disabled:opacity-50',
-        active && 'border-primary bg-primary/10 text-primary',
+        'relative inline-flex items-center justify-center rounded-full border-2 bg-card/95 text-foreground shadow-soft transition-colors',
+        'hover:border-primary hover:text-primary disabled:opacity-60',
+        active ? 'border-primary text-primary' : 'border-transparent',
         dim,
         className,
       )}
     >
-      <Heart className={cn(icon, active && 'fill-current')} />
+      <Heart
+        key={popKey}
+        className={cn(icon, active && 'fill-current', active && popKey > 0 && 'heart-pop')}
+        aria-hidden
+      />
+      {popKey > 0 && active ? (
+        <span key={`p${popKey}`} aria-hidden className="pointer-events-none absolute inset-0">
+          {[-14, 0, 14].map((dx, i) => (
+            <Heart
+              key={dx}
+              className="absolute left-[calc(50%-5px)] top-[calc(50%-5px)] h-2.5 w-2.5 fill-current text-primary opacity-0 motion-safe:animate-[float-heart_700ms_ease-out_forwards]"
+              style={{ '--dx': `${dx}px`, animationDelay: `${i * 60}ms` } as React.CSSProperties}
+            />
+          ))}
+        </span>
+      ) : null}
     </button>
   );
 }

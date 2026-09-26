@@ -60,7 +60,12 @@ export function HeroArt({ className }: { className?: string }) {
       {/* Hintergrund-Fläche mit Granny-Square-Textur */}
       <g clipPath="url(#hero-blob)">
         <rect width="600" height="680" style={{ fill: 'hsl(var(--primary-soft, 340 75% 91%))' }} />
-        <rect width="600" height="680" fill="url(#hero-granny)" opacity=".7" />
+        <rect
+          width="600"
+          height="680"
+          fill="url(#hero-granny)"
+          className="opacity-70 dark:opacity-15"
+        />
       </g>
 
       {/* Faden, der aus dem Bild hinausläuft (verbindet zur nächsten Sektion) */}

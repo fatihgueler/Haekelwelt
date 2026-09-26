@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Fraunces } from 'next/font/google';
+import { Caveat, Fraunces, Inter } from 'next/font/google';
 import Script from 'next/script';
 
 import { ThemeProvider } from '@/components/shared/theme-provider';
@@ -18,7 +18,15 @@ const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-fraunces',
   display: 'swap',
-  axes: ['opsz'],
+  axes: ['opsz', 'SOFT'],
+});
+
+// Handschrift-Akzent – nur für 1–2 dekorative Elemente (self-hosted via next/font).
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
+  display: 'swap',
+  weight: ['600'],
 });
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? 'Häkelwelt';
@@ -64,7 +72,11 @@ const organizationLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable}`}>
+    <html
+      lang="de"
+      suppressHydrationWarning
+      className={`${inter.variable} ${fraunces.variable} ${caveat.variable}`}
+    >
       <body className="min-h-screen bg-background text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}

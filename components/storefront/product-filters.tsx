@@ -10,8 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { toneClasses, type CategoryTone } from '@/lib/category-theme';
+import { cn } from '@/lib/utils';
 
-export type FilterCategory = { id: string; slug: string; name: string; count: number };
+export type FilterCategory = {
+  id: string;
+  slug: string;
+  name: string;
+  count: number;
+  tone?: CategoryTone;
+};
 
 export type ProductFiltersProps = {
   categories: FilterCategory[];
@@ -33,8 +41,13 @@ export function ProductFilters(props: ProductFiltersProps) {
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4" aria-hidden />
               Filter
+              {activeCount(props) > 0 ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[0.7rem] text-primary-foreground">
+                  {activeCount(props)}
+                </span>
+              ) : null}
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-full overflow-y-auto sm:max-w-sm">
@@ -48,6 +61,14 @@ export function ProductFilters(props: ProductFiltersProps) {
         </Sheet>
       </div>
     </>
+  );
+}
+
+function activeCount(p: ProductFiltersProps) {
+  return (
+    p.selectedCategories.length +
+    (p.selectedMin !== undefined || p.selectedMax !== undefined ? 1 : 0) +
+    (p.inStockOnly ? 1 : 0)
   );
 }
 
@@ -133,20 +154,27 @@ function FiltersPanel({
         Filter
       </h2>
       <section className="space-y-3">
-        <h3 className="font-serif text-base">Kategorien</h3>
+        <h3 className="font-serif text-base sm:text-base">Kategorien</h3>
         <ul className="space-y-2">
           {categories.map((cat) => {
             const id = `cat-${cat.slug}`;
             const checked = selectedCategories.includes(cat.slug);
             return (
-              <li key={cat.id} className="flex items-center gap-2">
+              <li key={cat.id} className="flex min-h-9 items-center gap-2">
                 <Checkbox
                   id={id}
                   checked={checked}
                   onCheckedChange={(v) => toggleCategory(cat.slug, v === true)}
                   disabled={pending}
                 />
-                <Label htmlFor={id} className="flex-1 cursor-pointer text-sm">
+                <Label
+                  htmlFor={id}
+                  className="flex flex-1 cursor-pointer items-center gap-2 text-sm"
+                >
+                  <span
+                    className={cn('h-2.5 w-2.5 rounded-full', toneClasses[cat.tone ?? 'brand'].dot)}
+                    aria-hidden
+                  />
                   {cat.name}
                 </Label>
                 <span className="text-xs text-muted-foreground">{cat.count}</span>
@@ -159,7 +187,7 @@ function FiltersPanel({
       <Separator />
 
       <section className="space-y-3">
-        <h3 className="font-serif text-base">Preis (€)</h3>
+        <h3 className="font-serif text-base sm:text-base">Preis (€)</h3>
         <div className="flex items-end gap-2">
           <div className="flex-1 space-y-1">
             <Label htmlFor="price-min" className="text-xs text-muted-foreground">
@@ -171,7 +199,7 @@ function FiltersPanel({
               inputMode="numeric"
               min={minEur}
               max={maxEur}
-              placeholder={String(minEur)}
+              placeholder={maxEur > 0 ? String(minEur) : 'z. B. 20'}
               value={minDraft}
               onChange={(e) => setMinDraft(e.target.value)}
             />
@@ -186,7 +214,7 @@ function FiltersPanel({
               inputMode="numeric"
               min={minEur}
               max={maxEur}
-              placeholder={String(maxEur)}
+              placeholder={maxEur > 0 ? String(maxEur) : 'z. B. 80'}
               value={maxDraft}
               onChange={(e) => setMaxDraft(e.target.value)}
             />
@@ -206,7 +234,7 @@ function FiltersPanel({
       <Separator />
 
       <section className="space-y-3">
-        <h3 className="font-serif text-base">Verfügbarkeit</h3>
+        <h3 className="font-serif text-base sm:text-base">Verfügbarkeit</h3>
         <div className="flex items-center gap-2">
           <Checkbox
             id="in-stock"

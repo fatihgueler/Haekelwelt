@@ -61,10 +61,11 @@ export function getCoreCategory(slug: string): CoreCategory | undefined {
  */
 export const toneClasses: Record<
   CategoryTone,
-  { surface: string; ink: string; deco: string; dot: string; button: string }
+  { surface: string; surfaceText: string; ink: string; deco: string; dot: string; button: string }
 > = {
   amigurumi: {
     surface: 'bg-cat-amigurumi-surface',
+    surfaceText: 'text-cat-amigurumi-surface',
     ink: 'text-cat-amigurumi-ink',
     deco: 'text-cat-amigurumi-deco',
     dot: 'bg-cat-amigurumi-deco',
@@ -72,6 +73,7 @@ export const toneClasses: Record<
   },
   heimdeko: {
     surface: 'bg-cat-heimdeko-surface',
+    surfaceText: 'text-cat-heimdeko-surface',
     ink: 'text-cat-heimdeko-ink',
     deco: 'text-cat-heimdeko-deco',
     dot: 'bg-cat-heimdeko-deco',
@@ -79,6 +81,7 @@ export const toneClasses: Record<
   },
   accessoires: {
     surface: 'bg-cat-accessoires-surface',
+    surfaceText: 'text-cat-accessoires-surface',
     ink: 'text-cat-accessoires-ink',
     deco: 'text-cat-accessoires-deco',
     dot: 'bg-cat-accessoires-deco',
@@ -86,6 +89,7 @@ export const toneClasses: Record<
   },
   kinder: {
     surface: 'bg-cat-kinder-surface',
+    surfaceText: 'text-cat-kinder-surface',
     ink: 'text-cat-kinder-ink',
     deco: 'text-cat-kinder-deco',
     dot: 'bg-cat-kinder-deco',
@@ -93,6 +97,7 @@ export const toneClasses: Record<
   },
   brand: {
     surface: 'bg-primary-soft',
+    surfaceText: 'text-primary-soft',
     ink: 'text-primary',
     deco: 'text-primary',
     dot: 'bg-primary',
@@ -107,3 +112,15 @@ export const SERVICE_LINKS = [
   { label: 'Versand', href: '/versand' },
   { label: 'Kontakt', href: '/kontakt' },
 ] as const;
+
+/** Wollfarbe je Farbton – z. B. für das Knäuel, das in den Warenkorb hüpft. */
+export const toneWool: Record<
+  CategoryTone,
+  'pfirsich' | 'senf' | 'lavendel' | 'himmelblau' | 'himbeere'
+> = {
+  amigurumi: 'pfirsich',
+  heimdeko: 'senf',
+  accessoires: 'lavendel',
+  kinder: 'himmelblau',
+  brand: 'himbeere',
+};

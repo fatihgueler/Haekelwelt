@@ -11,6 +11,7 @@ import { formatPriceCents } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { CheckoutForm } from '@/components/storefront/checkout-form';
 import { DiscountInput } from '@/components/storefront/discount-input';
+import { TrustList } from '@/components/storefront/shop-bits';
 
 export const metadata: Metadata = {
   title: 'Kasse',
@@ -37,12 +38,16 @@ export default async function CheckoutPage() {
 
   return (
     <div className="container py-10 lg:py-16">
-      <header className="mb-8 space-y-1">
-        <h1 className="font-serif text-4xl tracking-tight">Kasse</h1>
+      <header className="mb-8 space-y-2">
+        <p className="eyebrow">Letzter Schritt</p>
+        <h1>Kasse</h1>
         <p className="text-muted-foreground">
           Du bestellst als{' '}
           {session?.user ? <strong>{session.user.email}</strong> : <strong>Gast</strong>}. Du kannst{' '}
-          <Link href="/login?next=/checkout" className="underline-offset-2 hover:underline">
+          <Link
+            href="/login?next=/checkout"
+            className="font-medium text-primary underline underline-offset-4"
+          >
             einloggen
           </Link>
           , um deine Daten zu nutzen.
@@ -53,8 +58,8 @@ export default async function CheckoutPage() {
         <CheckoutForm defaultEmail={session?.user?.email ?? ''} />
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-serif text-xl tracking-tight">Deine Bestellung</h2>
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-soft">
+            <h2 className="font-serif text-2xl sm:text-2xl">Deine Bestellung</h2>
             <ul className="mt-4 space-y-4">
               {cart.items.map((item) => (
                 <li key={item.id} className="flex gap-3">
@@ -62,7 +67,7 @@ export default async function CheckoutPage() {
                     {item.product.images[0] ? (
                       <Image
                         src={item.product.images[0].url}
-                        alt={item.product.images[0].alt}
+                        alt=""
                         fill
                         sizes="64px"
                         className="object-cover"
@@ -86,7 +91,7 @@ export default async function CheckoutPage() {
                 <dd>{formatPriceCents(pricing.subtotalCents)}</dd>
               </div>
               {pricing.discountCents > 0 ? (
-                <div className="flex justify-between text-primary">
+                <div className="flex justify-between font-medium text-success">
                   <dt>Rabatt ({applied?.code.code})</dt>
                   <dd>−{formatPriceCents(pricing.discountCents)}</dd>
                 </div>
@@ -114,6 +119,7 @@ export default async function CheckoutPage() {
               Die finalen Versandkosten werden nach Auswahl des Lieferlandes berechnet.
             </p>
           </div>
+          <TrustList compact className="rounded-3xl bg-secondary p-6" />
         </aside>
       </div>
     </div>

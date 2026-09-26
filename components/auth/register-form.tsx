@@ -20,9 +20,10 @@ export function RegisterForm() {
     <form action={action} className="space-y-5" noValidate>
       {state.message ? (
         <div
+          role={state.ok ? 'status' : 'alert'}
           className={`rounded-xl border p-3 text-sm ${
             state.ok
-              ? 'border-primary/40 bg-primary/10 text-foreground'
+              ? 'border-success/40 bg-success-soft text-foreground'
               : 'border-destructive/40 bg-destructive/10 text-destructive'
           }`}
         >
@@ -79,7 +80,7 @@ export function RegisterForm() {
       <SubmitButton label="Konto erstellen" />
       <p className="text-center text-sm text-muted-foreground">
         Schon registriert?{' '}
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/login" className="font-semibold text-primary underline underline-offset-4">
           Jetzt einloggen
         </Link>
       </p>
@@ -114,8 +115,13 @@ function Field({
         autoComplete={autoComplete}
         required={required}
         aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${id}-error` : undefined}
       />
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="text-xs text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -124,7 +130,7 @@ function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
       {label}
     </Button>
   );

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
+import { Plus } from 'lucide-react';
+
+import { PageHeader } from '@/components/shared/page-header';
+import { reveal } from '@/lib/reveal';
 import { absoluteUrl } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -27,7 +31,7 @@ const faqs: { question: string; answer: string }[] = [
   {
     question: 'Sind die Produkte für Babys geeignet?',
     answer:
-      'Alle Stücke der Kategorie „Babys & Kinder" sind aus schadstoffgeprüfter Wolle gefertigt; Augen sind aufgestickt statt als Knopfaugen aufgenäht. Die übrigen Stücke sind nicht spezifisch babyfest – bitte für Kinder unter 3 Jahren nur unter Aufsicht.',
+      'Alle Stücke der Kategorie „Babys & Kinder“ sind aus schadstoffgeprüfter Wolle gefertigt; Augen sind aufgestickt statt als Knopfaugen aufgenäht. Die übrigen Stücke sind nicht spezifisch babyfest – bitte für Kinder unter 3 Jahren nur unter Aufsicht.',
   },
   {
     question: 'Kann ich ein Produkt zurückgeben?',
@@ -58,37 +62,40 @@ export default function FaqPage() {
   };
 
   return (
-    <div className="container max-w-3xl py-12 lg:py-16">
-      <header className="mb-10 space-y-2">
-        <p className="text-sm font-medium uppercase tracking-wide text-primary">Service</p>
-        <h1 className="font-serif text-4xl tracking-tight">Häufig gestellte Fragen</h1>
-        <p className="text-muted-foreground">
-          Antworten zu Versand, Pflege und Rückgabe. Hast du etwas, das hier nicht steht?{' '}
-          <Link href="/kontakt" className="underline-offset-2 hover:underline">
-            Schreib uns
-          </Link>
-          .
-        </p>
-      </header>
+    <div className="pb-16">
+      <PageHeader
+        eyebrow="Service"
+        title="Häufig gestellte Fragen"
+        tone="accessoires"
+        wool="lavendel"
+      >
+        Antworten zu Versand, Pflege und Rückgabe. Etwas fehlt?{' '}
+        <Link href="/kontakt" className="font-semibold underline underline-offset-4">
+          Schreib uns
+        </Link>
+        .
+      </PageHeader>
 
-      <ul className="space-y-3">
-        {faqs.map((f, i) => (
-          <li key={i}>
-            <details className="group rounded-2xl border border-border bg-card p-5 open:shadow-soft">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-serif text-lg tracking-tight">
-                {f.question}
-                <span
-                  aria-hidden
-                  className="text-muted-foreground transition-transform group-open:rotate-45"
-                >
-                  +
-                </span>
-              </summary>
-              <p className="mt-3 text-sm leading-relaxed text-foreground/90">{f.answer}</p>
-            </details>
-          </li>
-        ))}
-      </ul>
+      <div className="container max-w-3xl pt-10">
+        <ul className="space-y-3">
+          {faqs.map((f, i) => (
+            <li key={i} {...reveal(i % 4)}>
+              <details className="group rounded-3xl border border-border bg-card p-5 transition-shadow open:shadow-soft sm:p-6">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-serif text-lg font-semibold [&::-webkit-details-marker]:hidden">
+                  {f.question}
+                  <span
+                    aria-hidden
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary transition-transform duration-300 group-open:rotate-45"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </span>
+                </summary>
+                <p className="mt-3 text-pretty leading-relaxed text-foreground/90">{f.answer}</p>
+              </details>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <Script
         id="ld-faq"

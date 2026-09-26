@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 export type DesktopNavCategory = { slug: string; name: string; tone: CategoryTone };
 
 const linkBase =
-  'relative inline-flex h-10 items-center gap-2 rounded-full px-3 text-sm font-medium text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground';
+  'relative inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-full px-3 text-sm font-medium text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground';
 
 export function DesktopNav({ categories }: { categories: DesktopNavCategory[] }) {
   const pathname = usePathname();
@@ -25,7 +25,7 @@ export function DesktopNav({ categories }: { categories: DesktopNavCategory[] })
   const inCategory = pathname.startsWith('/kategorie/');
 
   return (
-    <nav aria-label="Hauptnavigation" className="hidden items-center gap-1 md:flex">
+    <nav aria-label="Hauptnavigation" className="hidden items-center gap-0.5 md:flex">
       <Link
         href="/produkte"
         aria-current={isActive('/produkte') ? 'page' : undefined}
@@ -67,7 +67,7 @@ export function DesktopNav({ categories }: { categories: DesktopNavCategory[] })
       </div>
 
       {/* ab xl: Kategorien direkt sichtbar */}
-      <ul className="hidden items-center gap-1 xl:flex">
+      <ul className="hidden items-center gap-0.5 xl:flex">
         {categories.map((cat) => {
           const href = `/kategorie/${cat.slug}`;
           const active = isActive(href);

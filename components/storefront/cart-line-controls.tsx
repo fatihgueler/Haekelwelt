@@ -31,34 +31,36 @@ export function CartLineControls({
 
   return (
     <div className="mt-auto flex items-center gap-4">
-      <div className="inline-flex items-center rounded-full border border-border">
+      <div className="inline-flex items-center rounded-full border-2 border-input">
         <button
           type="button"
           aria-label="Menge verringern"
           disabled={pending}
           onClick={() => update(quantity - 1)}
-          className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-50"
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-4 w-4" aria-hidden />
         </button>
-        <span className="w-10 text-center text-sm tabular-nums">{quantity}</span>
+        <span className="w-8 text-center text-sm font-semibold tabular-nums" aria-live="polite">
+          {quantity}
+        </span>
         <button
           type="button"
           aria-label="Menge erhöhen"
           disabled={pending || quantity >= stock}
           onClick={() => update(quantity + 1)}
-          className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden />
         </button>
       </div>
       <button
         type="button"
         onClick={remove}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
+        className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-2 text-sm text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-4 w-4" aria-hidden />
         Entfernen
       </button>
     </div>

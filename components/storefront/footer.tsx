@@ -4,6 +4,8 @@ import { NewsletterForm } from '@/components/storefront/newsletter-form';
 import { Separator } from '@/components/ui/separator';
 import { getNavCategories } from '@/lib/categories';
 import { SERVICE_LINKS } from '@/lib/category-theme';
+import { PicotDivider } from '@/components/illustrations/motifs';
+import { isPlaceholder, SITE } from '@/lib/site-config';
 
 const serviceLinks = [...SERVICE_LINKS];
 
@@ -21,27 +23,59 @@ export async function Footer() {
     ...categories.map((c) => ({ label: c.name, href: `/kategorie/${c.slug}` })),
   ];
 
+  const socialLinks = [
+    { label: 'Instagram', href: SITE.instagramUrl },
+    { label: 'Pinterest', href: SITE.pinterestUrl },
+  ].filter((l) => !isPlaceholder(l.href));
+
   return (
-    <footer className="border-t border-border bg-secondary/30">
-      <div className="container py-12 lg:py-16">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.4fr]">
-          <div className="space-y-4">
-            <Logo size="md" />
-            <p className="text-sm text-muted-foreground">
-              Handgehäkelte Unikate, Dekoration und Geschenke. Mit Liebe in Deutschland gefertigt.
+    <footer className="mt-auto">
+      <PicotDivider className="text-secondary" />
+      <div className="bg-secondary">
+        <div className="container py-12 lg:py-16">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.5fr]">
+            <div className="space-y-4">
+              <Logo size="md" />
+              <p className="max-w-xs text-sm text-muted-foreground">
+                Handgehäkelte Unikate, Dekoration und Geschenke – mit Liebe und viel Wolle in
+                Deutschland gefertigt.
+              </p>
+              {socialLinks.length > 0 ? (
+                <ul className="flex gap-3 text-sm">
+                  {socialLinks.map((l) => (
+                    <li key={l.label}>
+                      <a
+                        href={l.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary underline underline-offset-4"
+                      >
+                        {l.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+            <FooterColumn title="Shop" links={shopLinks} />
+            <FooterColumn title="Service" links={serviceLinks} />
+            <FooterColumn title="Rechtliches" links={legalLinks} />
+            <div className="sm:col-span-2 lg:col-span-1">
+              <NewsletterForm />
+            </div>
+          </div>
+
+          <Separator className="my-8" />
+
+          <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <p>© {new Date().getFullYear()} Häkelwelt · Mit ♥ von Hand gehäkelt</p>
+            <p>
+              Preise inkl. MwSt., zzgl.{' '}
+              <Link href="/versand" className="underline underline-offset-4 hover:text-primary">
+                Versand
+              </Link>
             </p>
           </div>
-          <FooterColumn title="Shop" links={shopLinks} />
-          <FooterColumn title="Service" links={serviceLinks} />
-          <FooterColumn title="Rechtliches" links={legalLinks} />
-          <NewsletterForm />
-        </div>
-
-        <Separator className="my-8" />
-
-        <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Häkelwelt. Alle Rechte vorbehalten.</p>
-          <p>Preise inkl. der gesetzlichen deutschen MwSt., zzgl. Versand.</p>
         </div>
       </div>
     </footer>
@@ -63,7 +97,7 @@ function FooterColumn({
           <li key={l.href}>
             <Link
               href={l.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              className="inline-flex min-h-8 items-center text-sm text-muted-foreground transition-colors hover:text-primary"
             >
               {l.label}
             </Link>

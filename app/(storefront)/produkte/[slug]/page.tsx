@@ -1,19 +1,23 @@
 import type { Metadata } from 'next';
-import { SmartImage as Image } from '@/components/shared/smart-image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Truck } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { AddToCartButton } from '@/components/storefront/add-to-cart-button';
+import { ProductCard } from '@/components/storefront/product-card';
+import { ProductGallery } from '@/components/storefront/product-gallery';
+import { TrustList, UniqueNote } from '@/components/storefront/shop-bits';
+import { getCategoryTone, toneClasses, toneWool } from '@/lib/category-theme';
+import { parseProductDescription } from '@/lib/product-details';
 import { ReviewStars } from '@/components/storefront/review-stars';
 import { ReviewsSection } from '@/components/storefront/reviews-section';
 import { WishlistButton } from '@/components/storefront/wishlist-button';
 import { db } from '@/lib/db';
 import { TAX_RATE_PERCENT } from '@/lib/pricing';
 import { getReviewSummary } from '@/lib/reviews';
-import { absoluteUrl, formatPriceCents } from '@/lib/utils';
+import { absoluteUrl, cn, formatPriceCents } from '@/lib/utils';
 import { getWishlistProductIds } from '@/lib/wishlist';
 
 type Params = { params: Promise<{ slug: string }> };
@@ -34,10 +38,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!product) return { title: 'Produkt nicht gefunden' };
   return {
     title: product.title,
-    description: product.description.slice(0, 160),
+    description: parseProductDescription(product.description).paragraphs[0]?.slice(0, 160),
     openGraph: {
       title: product.title,
-      description: product.description.slice(0, 160),
+      description: parseProductDescription(product.description).paragraphs[0]?.slice(0, 160),
       images: product.images[0]?.url ? [product.images[0].url] : [],
     },
   };
@@ -105,143 +109,207 @@ export default async function ProductDetailPage({ params }: Params) {
     ],
   };
 
+  const tone = getCategoryTone(product.category.slug);
+  const t = toneClasses[tone];
+  const { paragraphs, details } = parseProductDescription(product.description);
+  const related = await db.product
+    .findMany({
+      where: { isActive: true, categoryId: product.categoryId, NOT: { id: product.id } },
+      include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+    })
+    .catch(() => []);
+
   return (
-    <div className="container py-10 lg:py-16">
-      <nav
-        aria-label="Brotkrumen"
-        className="mb-8 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
-      >
-        <Link href="/" className="hover:text-primary">
-          Start
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-        <Link href="/produkte" className="hover:text-primary">
-          Shop
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-        <Link href={`/kategorie/${product.category.slug}`} className="hover:text-primary">
-          {product.category.name}
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-        <span className="text-foreground">{product.title}</span>
-      </nav>
-
-      <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-        <div className="space-y-4">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-muted">
-            {product.images[0] ? (
-              <Image
-                src={product.images[0].url}
-                alt={product.images[0].alt}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                placeholder={product.images[0].blurDataUrl ? 'blur' : 'empty'}
-                blurDataURL={product.images[0].blurDataUrl ?? undefined}
-                className="object-cover"
-              />
-            ) : null}
-          </div>
-          {product.images.length > 1 ? (
-            <div className="grid grid-cols-4 gap-3">
-              {product.images.slice(1, 5).map((img) => (
-                <div
-                  key={img.id}
-                  className="relative aspect-square overflow-hidden rounded-xl bg-muted"
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.alt}
-                    fill
-                    sizes="(max-width: 1024px) 25vw, 12vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          <div className="space-y-3">
-            <Link
-              href={`/kategorie/${product.category.slug}`}
-              className="inline-block text-sm font-medium uppercase tracking-wide text-primary"
-            >
-              {product.category.name}
-            </Link>
-            <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">{product.title}</h1>
-            {reviewSummary.count > 0 ? (
-              <Link
-                href="#reviews-heading"
-                className="inline-flex items-center gap-2 text-sm hover:text-primary"
-              >
-                <ReviewStars value={reviewSummary.average} size="sm" />
-                <span className="text-muted-foreground">
-                  {reviewSummary.average.toFixed(1)} ({reviewSummary.count})
-                </span>
+    <div className="pb-16">
+      <div className="container pt-6 lg:pt-10">
+        <nav aria-label="Brotkrumen" className="mb-6 text-sm text-muted-foreground">
+          <ol className="flex flex-wrap items-center gap-1">
+            <li>
+              <Link href="/" className="underline-offset-4 hover:text-primary hover:underline">
+                Start
               </Link>
-            ) : null}
-            <div className="flex items-baseline gap-3">
-              <p className="text-3xl font-semibold text-foreground">
-                {formatPriceCents(product.priceCents)}
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="h-3.5 w-3.5" />
+            </li>
+            <li>
+              <Link
+                href="/produkte"
+                className="underline-offset-4 hover:text-primary hover:underline"
+              >
+                Shop
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="h-3.5 w-3.5" />
+            </li>
+            <li>
+              <Link
+                href={`/kategorie/${product.category.slug}`}
+                className="underline-offset-4 hover:text-primary hover:underline"
+              >
+                {product.category.name}
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronRight className="h-3.5 w-3.5" />
+            </li>
+            <li aria-current="page" className="font-medium text-foreground">
+              {product.title}
+            </li>
+          </ol>
+        </nav>
+
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+          <ProductGallery
+            title={product.title}
+            surfaceClass={t.surface}
+            images={product.images.map((img) => ({
+              id: img.id,
+              url: img.url,
+              alt: img.alt,
+              blurDataUrl: img.blurDataUrl,
+            }))}
+          />
+
+          <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            <div className="space-y-3">
+              <Link href={`/kategorie/${product.category.slug}`}>
+                <Badge variant={tone} className="text-sm">
+                  {product.category.name}
+                </Badge>
+              </Link>
+              <h1 className="text-balance">{product.title}</h1>
+              {reviewSummary.count > 0 ? (
+                <Link
+                  href="#reviews-heading"
+                  className="inline-flex items-center gap-2 text-sm hover:text-primary"
+                >
+                  <ReviewStars value={reviewSummary.average} size="sm" />
+                  <span className="text-muted-foreground">
+                    {reviewSummary.average.toFixed(1)} ({reviewSummary.count} Bewertungen)
+                  </span>
+                </Link>
+              ) : null}
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="font-serif text-4xl font-semibold tabular-nums text-foreground">
+                  {formatPriceCents(product.priceCents)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  inkl. {taxPercent} % MwSt., zzgl.{' '}
+                  <Link href="/versand" className="underline underline-offset-2 hover:text-primary">
+                    Versand
+                  </Link>
+                </p>
+              </div>
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'h-2.5 w-2.5 rounded-full',
+                    isSoldOut ? 'bg-muted-foreground' : isLast ? 'bg-primary' : 'bg-success',
+                  )}
+                />
+                {isSoldOut
+                  ? 'Leider vergriffen – schreib uns, wenn du dir ein ähnliches Stück wünschst.'
+                  : isLast
+                    ? 'Nur noch 1 Stück – ein echtes Unikat'
+                    : `Auf Lager · ${product.stock} Stück verfügbar`}
               </p>
-              <p className="text-sm text-muted-foreground">
-                inkl. {taxPercent} % MwSt., zzgl.{' '}
-                <Link href="/versand" className="underline-offset-2 hover:underline">
-                  Versand
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <AddToCartButton
+                productId={product.id}
+                disabled={isSoldOut}
+                wool={toneWool[tone]}
+                className="flex-1 sm:flex-none"
+              />
+              <WishlistButton productId={product.id} initialInWishlist={inWishlist} />
+            </div>
+
+            <div className="flex items-start gap-3 rounded-2xl bg-success-soft p-4 text-sm">
+              <Truck className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-hidden />
+              <p className="text-foreground">
+                <strong className="font-semibold">
+                  Verschickt in der Regel am nächsten Werktag.
+                </strong>{' '}
+                Lieferzeit in Deutschland 2–4 Werktage, in der EU 4–8 Werktage.{' '}
+                <Link
+                  href="/versand"
+                  className="font-medium text-success underline underline-offset-2"
+                >
+                  Mehr zum Versand
                 </Link>
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {isSoldOut ? (
-                <Badge variant="destructive">Ausverkauft</Badge>
-              ) : isLast ? (
-                <Badge variant="accent">Nur 1 Stück verfügbar</Badge>
-              ) : (
-                <Badge variant="secondary">Auf Lager · {product.stock} verfügbar</Badge>
-              )}
-              <Badge variant="outline">Handarbeit aus Deutschland</Badge>
+
+            <div className="space-y-4 text-base leading-relaxed text-foreground/90">
+              {paragraphs.map((para, i) => (
+                <p key={i} className="text-pretty">
+                  {para}
+                </p>
+              ))}
             </div>
+
+            <UniqueNote />
+
+            {details.length > 0 ? (
+              <section
+                aria-labelledby="details-heading"
+                className="rounded-2xl border border-border bg-card p-5"
+              >
+                <h2 id="details-heading" className="font-serif text-lg sm:text-lg">
+                  Details
+                </h2>
+                <dl className="mt-3 divide-y divide-border text-sm">
+                  {details.map((d) => (
+                    <div key={d.label} className="grid grid-cols-[6rem_1fr] gap-3 py-2.5">
+                      <dt className="font-semibold text-foreground">{d.label}</dt>
+                      <dd className="text-muted-foreground">{d.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ) : null}
+
+            <TrustList className="rounded-2xl bg-secondary p-5" />
           </div>
-
-          <p className="whitespace-pre-line text-base leading-relaxed text-foreground/90">
-            {product.description}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <AddToCartButton productId={product.id} disabled={isSoldOut} />
-            <WishlistButton productId={product.id} initialInWishlist={inWishlist} />
-            <Link
-              href="/versand"
-              className="text-sm text-muted-foreground underline-offset-2 hover:text-primary hover:underline"
-            >
-              Versand & Lieferzeiten
-            </Link>
-          </div>
-
-          <dl className="grid gap-3 rounded-2xl border border-border bg-secondary/30 p-5 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Material</dt>
-              <dd className="text-foreground">100 % Naturfaser</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Lieferzeit DE</dt>
-              <dd className="text-foreground">2–4 Werktage</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Lieferzeit EU</dt>
-              <dd className="text-foreground">4–8 Werktage</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">Pflege</dt>
-              <dd className="text-foreground">Handwäsche kalt</dd>
-            </div>
-          </dl>
         </div>
       </div>
 
       <ReviewsSection productId={product.id} productSlug={product.slug} />
+
+      {related.length > 0 ? (
+        <section aria-labelledby="related-heading" className={cn('py-12 lg:py-16', t.surface)}>
+          <div className="container">
+            <h2 id="related-heading" className="font-serif text-3xl">
+              Mehr aus {product.category.name}
+            </h2>
+            <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+              {related.map((p, index) => (
+                <ProductCard
+                  key={p.id}
+                  index={index}
+                  product={{
+                    id: p.id,
+                    slug: p.slug,
+                    title: p.title,
+                    priceCents: p.priceCents,
+                    imageUrl: p.images[0]?.url,
+                    imageAlt: p.images[0]?.alt,
+                    categorySlug: product.category.slug,
+                    stock: p.stock,
+                    inWishlist: wishlist.has(p.id),
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <Script
         id="ld-product"

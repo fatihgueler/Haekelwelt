@@ -71,7 +71,7 @@ const products: SeedProduct[] = [
     stock: 3,
     weightGrams: 180,
     intro:
-      'Luna hat lange Schlappohren, ein rosa Halstuch und ein Herz für alle, die gern kuscheln. Jede Masche ist von Hand gehäkelt, die Augen sind aufgestickt – ganz ohne Kleinteile.\n\nFür Luna brauche ich etwa sechs Stunden. Deshalb sieht jeder Hase ein kleines bisschen anders aus.',
+      'Luna hat lange Schlappohren, ein rosa Halstuch und ein Herz für alle, die gern kuscheln. Jede Masche ist von Hand gehäkelt, die Augen sind aufgestickt – ganz ohne Kleinteile.\n\nFür Luna brauchen wir etwa sechs Stunden. Deshalb sieht jeder Hase ein kleines bisschen anders aus.',
     material: '100 % Bio-Baumwolle, Füllung aus Polyester-Kugelfaser (waschbar)',
     masse: 'ca. 26 cm hoch (mit Ohren), 12 cm breit',
     pflege: 'Handwäsche bis 30 °C, liegend trocknen',
@@ -85,7 +85,7 @@ const products: SeedProduct[] = [
     stock: 1,
     weightGrams: 220,
     intro:
-      'Bruno ist ein klassischer Teddy mit runden Ohren, heller Schnauze und einer mintgrünen Fliege. Arme und Beine sind fest angenäht, damit er jede Abenteuerreise mitmacht.\n\nBruno gibt es genau einmal – wenn er weg ist, häkle ich einen neuen, aber nie denselben.',
+      'Bruno ist ein klassischer Teddy mit runden Ohren, heller Schnauze und einer mintgrünen Fliege. Arme und Beine sind fest angenäht, damit er jede Abenteuerreise mitmacht.\n\nBruno gibt es genau einmal – wenn er weg ist, häkeln wir einen neuen, aber nie denselben.',
     material: 'Baumwolle-Leinen-Mischung (70/30), Sicherheitsfüllung',
     masse: 'ca. 24 cm hoch, 14 cm breit',
     pflege: 'Handwäsche bis 30 °C, nicht in den Trockner',
@@ -114,7 +114,7 @@ const products: SeedProduct[] = [
     stock: 1,
     weightGrams: 1400,
     intro:
-      'Sechzig Granny Squares in Senf, Himbeere, Mint, Lavendel und Himmelblau, einzeln gehäkelt und von Hand zusammengefügt. Die Decke wärmt auf dem Sofa und macht gute Laune, sobald man sie sieht.\n\nAn dieser Decke habe ich rund drei Wochen gearbeitet. Es gibt sie nur ein einziges Mal.',
+      'Sechzig Granny Squares in Senf, Himbeere, Mint, Lavendel und Himmelblau, einzeln gehäkelt und von Hand zusammengefügt. Die Decke wärmt auf dem Sofa und macht gute Laune, sobald man sie sieht.\n\nAn dieser Decke haben wir rund drei Wochen gearbeitet. Es gibt sie nur ein einziges Mal.',
     material: 'Merinowolle (superwash) und Baumwolle, je zur Hälfte',
     masse: 'ca. 120 × 150 cm, Fransen 4 cm',
     pflege: 'Wollwaschgang bis 30 °C, liegend trocknen',

@@ -124,7 +124,7 @@ export function MobileNav({
           <div className="mt-6 grid grid-cols-2 gap-2 border-t border-border px-3 pt-6">
             <Button asChild variant="outline" size="sm">
               <Link href="/konto/wunschliste" onClick={navigate}>
-                <Heart className="h-4 w-4" aria-hidden /> Merkliste
+                <Heart className="h-4 w-4" aria-hidden /> Wunschliste
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
