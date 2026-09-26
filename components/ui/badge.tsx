@@ -3,15 +3,22 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full px-3 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-semibold transition-colors',
   {
     variants: {
       variant: {
-        default: 'bg-primary/15 text-primary',
+        default: 'bg-primary-soft text-primary',
+        solid: 'bg-primary text-primary-foreground',
         secondary: 'bg-secondary text-secondary-foreground',
-        accent: 'bg-accent/20 text-accent-foreground',
-        outline: 'border border-border text-foreground',
-        destructive: 'bg-destructive/15 text-destructive',
+        accent: 'bg-accent text-accent-foreground',
+        success: 'bg-success-soft text-success',
+        outline: 'border border-input text-foreground',
+        destructive: 'bg-destructive text-destructive-foreground',
+        amigurumi: 'bg-cat-amigurumi-surface text-cat-amigurumi-ink',
+        heimdeko: 'bg-cat-heimdeko-surface text-cat-heimdeko-ink',
+        accessoires: 'bg-cat-accessoires-surface text-cat-accessoires-ink',
+        kinder: 'bg-cat-kinder-surface text-cat-kinder-ink',
+        brand: 'bg-primary-soft text-primary',
       },
     },
     defaultVariants: { variant: 'default' },

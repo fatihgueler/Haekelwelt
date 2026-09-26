@@ -2,69 +2,194 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Häkelwelt Design-Tokens – drei Ebenen (siehe docs/design-konzept.md):
+ * 1. Primitive  – Wollfarben & Neutrale als HSL-Tripel (--himbeere-700 …)
+ * 2. Semantic   – Bedeutung, wechselt mit Light/Dark (--primary, --cat-*-ink …)
+ * 3. Component  – über Tailwind-Klassen/Varianten in components/ui/*
+ * Regel: Pastell (50–200) nur als Fläche, 400 nur Deko, Text/Buttons 700/800 bzw. 300d.
+ */
 @layer base {
   :root {
-    /* Light Mode – warme, gedeckte Töne, kein reines Weiß. */
-    --background: 36 33% 97%;
-    --foreground: 25 15% 18%;
+    /* ---------- Primitive: Wolle ---------- */
+    --himbeere-50: 340 70% 96%;
+    --himbeere-100: 340 75% 91%;
+    --himbeere-200: 340 72% 82%;
+    --himbeere-300d: 340 80% 76%;
+    --himbeere-400: 340 68% 62%;
+    --himbeere-700: 340 62% 38%;
+    --himbeere-800: 340 58% 30%;
+    --himbeere-900d: 340 35% 17%;
 
-    --card: 36 33% 99%;
-    --card-foreground: 25 15% 18%;
+    --senf-50: 40 85% 94%;
+    --senf-100: 40 85% 86%;
+    --senf-200: 40 82% 72%;
+    --senf-300d: 40 85% 66%;
+    --senf-400: 40 78% 52%;
+    --senf-700: 40 80% 26%;
+    --senf-800: 40 75% 21%;
+    --senf-900d: 40 35% 14%;
 
-    --popover: 36 33% 99%;
-    --popover-foreground: 25 15% 18%;
+    --mint-50: 162 45% 94%;
+    --mint-100: 162 45% 86%;
+    --mint-200: 162 42% 74%;
+    --mint-300d: 162 45% 62%;
+    --mint-400: 162 40% 48%;
+    --mint-700: 162 65% 22%;
+    --mint-800: 162 60% 17%;
+    --mint-900d: 162 30% 13%;
 
-    --primary: 345 35% 65%;
-    --primary-foreground: 36 33% 98%;
+    --lavendel-50: 262 60% 96%;
+    --lavendel-100: 262 60% 91%;
+    --lavendel-200: 262 55% 82%;
+    --lavendel-300d: 262 70% 80%;
+    --lavendel-400: 262 45% 64%;
+    --lavendel-700: 262 40% 42%;
+    --lavendel-800: 262 40% 33%;
+    --lavendel-900d: 262 25% 17%;
 
-    --secondary: 35 20% 92%;
-    --secondary-foreground: 25 15% 22%;
+    --pfirsich-50: 18 90% 95%;
+    --pfirsich-100: 18 90% 89%;
+    --pfirsich-200: 18 85% 79%;
+    --pfirsich-300d: 18 90% 74%;
+    --pfirsich-400: 18 80% 64%;
+    --pfirsich-700: 18 70% 33%;
+    --pfirsich-800: 18 65% 26%;
+    --pfirsich-900d: 18 35% 15%;
 
-    --muted: 35 20% 90%;
-    --muted-foreground: 25 10% 42%;
+    --himmelblau-50: 202 70% 95%;
+    --himmelblau-100: 202 70% 89%;
+    --himmelblau-200: 202 65% 78%;
+    --himmelblau-300d: 202 75% 70%;
+    --himmelblau-400: 202 60% 56%;
+    --himmelblau-700: 202 70% 29%;
+    --himmelblau-800: 202 65% 23%;
+    --himmelblau-900d: 202 35% 15%;
 
-    --accent: 265 25% 70%;
-    --accent-foreground: 36 33% 98%;
+    /* ---------- Primitive: Neutrale ---------- */
+    --creme: 38 50% 97%;
+    --creme-card: 38 60% 99%;
+    --sand: 36 40% 92%;
+    --sand-muted: 36 30% 93%;
+    --faden: 32 25% 85%;
+    --faden-ui: 26 14% 56%;
+    --tinte: 20 25% 14%;
+    --tinte-muted: 22 14% 36%;
+    --nacht: 24 18% 10%;
+    --nacht-card: 24 16% 14%;
+    --nacht-sand: 24 14% 19%;
+    --nacht-muted: 24 14% 18%;
+    --nacht-faden: 24 12% 24%;
+    --nacht-faden-ui: 28 10% 44%;
+    --mond: 36 30% 92%;
+    --mond-muted: 34 16% 72%;
+    --rot-700: 4 68% 40%;
+    --rot-300d: 6 85% 72%;
 
-    --destructive: 15 55% 55%;
-    --destructive-foreground: 36 33% 98%;
+    /* ---------- Semantic: Light ---------- */
+    --background: var(--creme);
+    --foreground: var(--tinte);
 
-    --border: 35 15% 85%;
-    --input: 35 15% 88%;
-    --ring: 345 35% 65%;
+    --card: var(--creme-card);
+    --card-foreground: var(--tinte);
 
-    --radius: 0.75rem;
+    --popover: var(--creme-card);
+    --popover-foreground: var(--tinte);
+
+    --primary: var(--himbeere-700);
+    --primary-foreground: var(--creme);
+    --primary-soft: var(--himbeere-100);
+
+    --secondary: var(--sand);
+    --secondary-foreground: var(--tinte);
+
+    --muted: var(--sand-muted);
+    --muted-foreground: var(--tinte-muted);
+
+    --accent: var(--lavendel-100);
+    --accent-foreground: var(--lavendel-800);
+
+    --success: var(--mint-700);
+    --success-foreground: var(--creme);
+    --success-soft: var(--mint-100);
+
+    --destructive: var(--rot-700);
+    --destructive-foreground: var(--creme);
+
+    --border: var(--faden);
+    --input: var(--faden-ui);
+    --ring: var(--himbeere-700);
+
+    /* Kategorien: surface = Fläche, ink = Text/Button, deco = Illustration */
+    --cat-amigurumi-surface: var(--pfirsich-100);
+    --cat-amigurumi-ink: var(--pfirsich-800);
+    --cat-amigurumi-deco: var(--pfirsich-400);
+
+    --cat-heimdeko-surface: var(--senf-100);
+    --cat-heimdeko-ink: var(--senf-800);
+    --cat-heimdeko-deco: var(--senf-400);
+
+    --cat-accessoires-surface: var(--lavendel-100);
+    --cat-accessoires-ink: var(--lavendel-800);
+    --cat-accessoires-deco: var(--lavendel-400);
+
+    --cat-kinder-surface: var(--himmelblau-100);
+    --cat-kinder-ink: var(--himmelblau-800);
+    --cat-kinder-deco: var(--himmelblau-400);
+
+    --radius: 1rem;
   }
 
   .dark {
-    /* Dark Mode – warme Töne, kein reines Schwarz. */
-    --background: 25 15% 12%;
-    --foreground: 36 25% 92%;
+    /* ---------- Semantic: Dark ---------- */
+    --background: var(--nacht);
+    --foreground: var(--mond);
 
-    --card: 25 14% 15%;
-    --card-foreground: 36 25% 92%;
+    --card: var(--nacht-card);
+    --card-foreground: var(--mond);
 
-    --popover: 25 14% 15%;
-    --popover-foreground: 36 25% 92%;
+    --popover: var(--nacht-card);
+    --popover-foreground: var(--mond);
 
-    --primary: 345 35% 65%;
-    --primary-foreground: 25 15% 12%;
+    --primary: var(--himbeere-300d);
+    --primary-foreground: var(--nacht);
+    --primary-soft: var(--himbeere-900d);
 
-    --secondary: 25 12% 22%;
-    --secondary-foreground: 36 25% 92%;
+    --secondary: var(--nacht-sand);
+    --secondary-foreground: var(--mond);
 
-    --muted: 25 12% 22%;
-    --muted-foreground: 36 15% 70%;
+    --muted: var(--nacht-muted);
+    --muted-foreground: var(--mond-muted);
 
-    --accent: 265 25% 65%;
-    --accent-foreground: 25 15% 12%;
+    --accent: var(--lavendel-900d);
+    --accent-foreground: var(--lavendel-300d);
 
-    --destructive: 15 55% 50%;
-    --destructive-foreground: 36 25% 95%;
+    --success: var(--mint-300d);
+    --success-foreground: var(--nacht);
+    --success-soft: var(--mint-900d);
 
-    --border: 25 10% 26%;
-    --input: 25 10% 26%;
-    --ring: 345 35% 65%;
+    --destructive: var(--rot-300d);
+    --destructive-foreground: var(--nacht);
+
+    --border: var(--nacht-faden);
+    --input: var(--nacht-faden-ui);
+    --ring: var(--himbeere-300d);
+
+    --cat-amigurumi-surface: var(--pfirsich-900d);
+    --cat-amigurumi-ink: var(--pfirsich-300d);
+    --cat-amigurumi-deco: var(--pfirsich-300d);
+
+    --cat-heimdeko-surface: var(--senf-900d);
+    --cat-heimdeko-ink: var(--senf-300d);
+    --cat-heimdeko-deco: var(--senf-300d);
+
+    --cat-accessoires-surface: var(--lavendel-900d);
+    --cat-accessoires-ink: var(--lavendel-300d);
+    --cat-accessoires-deco: var(--lavendel-300d);
+
+    --cat-kinder-surface: var(--himmelblau-900d);
+    --cat-kinder-ink: var(--himmelblau-300d);
+    --cat-kinder-deco: var(--himmelblau-300d);
   }
 }
 
@@ -91,27 +216,33 @@
   h2,
   h3,
   h4 {
-    @apply font-serif tracking-tight;
+    @apply font-serif font-semibold tracking-tight;
     font-optical-sizing: auto;
+    text-wrap: balance;
   }
 
+  /* Typo-Skala (fluid) – siehe Konzept Abschnitt 6 */
   h1 {
-    @apply text-4xl sm:text-5xl;
+    font-size: clamp(2.25rem, 1.8rem + 2vw, 3.25rem);
+    line-height: 1.1;
   }
 
   h2 {
-    @apply text-3xl sm:text-4xl;
+    font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+    line-height: 1.15;
   }
 
   h3 {
-    @apply text-2xl;
+    @apply text-xl sm:text-2xl;
+    line-height: 1.25;
   }
 
   ::selection {
     @apply bg-primary/20 text-foreground;
   }
 
-  *:focus-visible {
+  /* Eine einzige Fokus-Definition für alle interaktiven Elemente */
+  :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
@@ -127,8 +258,190 @@
   }
 }
 
+@layer components {
+  /* Kleine Überschrift über H1/H2 */
+  .eyebrow {
+    @apply text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-primary;
+  }
+
+  .display {
+    font-size: clamp(2.5rem, 1.6rem + 4vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  /* Dezente Granny-Square-Textur als Hintergrund (Data-URI, CSP: img-src data:) */
+  .bg-granny {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect x='8' y='8' width='40' height='40' rx='6' fill='none' stroke='%239D254D' stroke-opacity='.07' stroke-width='3'/%3E%3Crect x='18' y='18' width='20' height='20' rx='4' fill='%239D254D' fill-opacity='.04'/%3E%3C/svg%3E");
+  }
+
+  .dark .bg-granny {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect x='8' y='8' width='40' height='40' rx='6' fill='none' stroke='%23F391B1' stroke-opacity='.07' stroke-width='3'/%3E%3Crect x='18' y='18' width='20' height='20' rx='4' fill='%23F391B1' fill-opacity='.04'/%3E%3C/svg%3E");
+  }
+
+  /* Maschen-Aufzählung (kleines „V“) */
+  .list-stitch > li {
+    @apply relative pl-6;
+  }
+
+  .list-stitch > li::before {
+    content: '';
+    @apply absolute left-0 top-[0.55em] h-2.5 w-3 bg-primary;
+    clip-path: polygon(0 0, 22% 0, 50% 62%, 78% 0, 100% 0, 50% 100%);
+  }
+
+  /* Rechtstexte ohne Typography-Plugin */
+  .legal-content {
+    @apply space-y-5 text-base leading-relaxed text-foreground/90;
+  }
+
+  .legal-content h2 {
+    @apply mt-12 border-t border-border pt-8 text-2xl sm:text-2xl;
+  }
+
+  .legal-content h3 {
+    @apply mt-6 text-xl sm:text-xl;
+  }
+
+  .legal-content ul {
+    @apply list-disc space-y-2 pl-6 marker:text-primary;
+  }
+
+  .legal-content ol {
+    @apply list-decimal space-y-2 pl-6 marker:text-primary;
+  }
+
+  .legal-content a {
+    @apply font-medium text-primary underline underline-offset-4;
+  }
+}
+
+/*
+ * Animationen – nur transform/opacity, nur ohne „Bewegung reduzieren“.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* Scroll-Reveal: Klasse wird per IntersectionObserver gesetzt (components/shared/reveal.tsx).
+     Ohne JS bleibt alles sichtbar, weil .reveal-ready erst clientseitig gesetzt wird. */
+  .reveal-ready [data-reveal] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--reveal-i, 0) * 80ms);
+  }
+
+  .reveal-ready [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Produktkarte: sanftes Wackeln beim Hover/Fokus */
+  .card-wobble:hover .card-wobble-target,
+  .card-wobble:focus-within .card-wobble-target {
+    animation: wobble 480ms ease-in-out both;
+  }
+
+  /* Mobile-Menü: Einträge gestaffelt einblenden */
+  [data-state='open'] .menu-item-in {
+    animation: menu-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 40ms + 80ms);
+  }
+
+  .heart-pop {
+    animation: heart-pop 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .cart-bounce {
+    animation: cart-bounce 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .animate-swing {
+    transform-origin: top center;
+    animation: swing 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes wobble {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-4px) rotate(-1.2deg);
+  }
+  60% {
+    transform: translateY(-4px) rotate(1deg);
+  }
+  100% {
+    transform: translateY(-4px) rotate(0);
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cart-bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22) rotate(-6deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes swing {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes float-heart {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx, 0), -28px) scale(1);
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
   }
 }

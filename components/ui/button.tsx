@@ -3,20 +3,31 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
+/*
+ * Button-Varianten (Component-Tokens). Alle Text/Flächen-Paare erfüllen WCAG AA
+ * in Light und Dark (siehe docs/design-konzept.md, Abschnitt 5.5).
+ */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  [
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold',
+    'transition-[background-color,color,box-shadow,transform] duration-200 ease-soft',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+    'disabled:pointer-events-none disabled:opacity-50',
+    'motion-safe:active:scale-[0.97]',
+    '[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  ].join(' '),
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-soft hover:bg-primary/90 active:scale-[0.98]',
-        secondary:
-          'border border-border bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        outline: 'border border-border bg-transparent text-foreground hover:bg-secondary',
+          'bg-primary text-primary-foreground shadow-pop hover:bg-primary/90 motion-safe:hover:-translate-y-0.5',
+        secondary: 'bg-primary-soft text-primary hover:bg-primary-soft/70',
+        outline:
+          'border-2 border-input bg-transparent text-foreground hover:border-primary hover:text-primary',
         ghost: 'text-foreground hover:bg-secondary',
-        link: 'rounded-none text-primary underline-offset-4 hover:underline',
-        destructive:
-          'bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90',
+        link: 'rounded-none px-0 text-primary underline-offset-4 hover:underline',
+        success: 'bg-success text-success-foreground hover:bg-success/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
       },
       size: {
         default: 'h-11 px-6',

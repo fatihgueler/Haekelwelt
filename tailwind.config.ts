@@ -26,6 +26,34 @@ const config: Config = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          soft: 'hsl(var(--primary-soft))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+          soft: 'hsl(var(--success-soft))',
+        },
+        cat: {
+          amigurumi: {
+            surface: 'hsl(var(--cat-amigurumi-surface))',
+            ink: 'hsl(var(--cat-amigurumi-ink))',
+            deco: 'hsl(var(--cat-amigurumi-deco))',
+          },
+          heimdeko: {
+            surface: 'hsl(var(--cat-heimdeko-surface))',
+            ink: 'hsl(var(--cat-heimdeko-ink))',
+            deco: 'hsl(var(--cat-heimdeko-deco))',
+          },
+          accessoires: {
+            surface: 'hsl(var(--cat-accessoires-surface))',
+            ink: 'hsl(var(--cat-accessoires-ink))',
+            deco: 'hsl(var(--cat-accessoires-deco))',
+          },
+          kinder: {
+            surface: 'hsl(var(--cat-kinder-surface))',
+            ink: 'hsl(var(--cat-kinder-ink))',
+            deco: 'hsl(var(--cat-kinder-deco))',
+          },
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -53,6 +81,9 @@ const config: Config = {
         },
       },
       borderRadius: {
+        xl: 'calc(var(--radius) + 4px)',
+        '2xl': 'calc(var(--radius) + 8px)',
+        '3xl': 'calc(var(--radius) + 16px)',
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 4px)',
         sm: 'calc(var(--radius) - 8px)',
@@ -60,10 +91,12 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-fraunces)', 'Georgia', 'serif'],
+        hand: ['var(--font-caveat)', 'var(--font-fraunces)', 'cursive'],
       },
       boxShadow: {
-        soft: '0 4px 20px -2px rgb(0 0 0 / 0.06)',
-        'soft-lg': '0 12px 40px -8px rgb(0 0 0 / 0.10)',
+        soft: '0 4px 20px -2px hsl(20 25% 14% / 0.07)',
+        'soft-lg': '0 16px 40px -12px hsl(20 25% 14% / 0.16)',
+        pop: '0 6px 0 0 hsl(var(--primary) / 0.25)',
       },
       keyframes: {
         'fade-in': {
