@@ -116,7 +116,10 @@ export default async function ProductsPage({
           inStockOnly={inStockOnly}
         />
 
-        <div>
+        <section aria-labelledby="results-heading">
+          <h2 id="results-heading" className="sr-only">
+            Produkte
+          </h2>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               Seite {Math.min(page, pageCount)} von {pageCount}
@@ -161,7 +164,7 @@ export default async function ProductsPage({
               />
             </>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

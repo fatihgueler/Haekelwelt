@@ -49,10 +49,22 @@ export async function listProducts(input: ProductListInput): Promise<ProductList
 
   const q = (input.q ?? '').trim();
   if (q.length > 0) {
-    return searchProducts({ ...input, q, page, perPage, offset, sort });
+    try {
+      return await searchProducts({ ...input, q, page, perPage, offset, sort });
+    } catch (error) {
+      // FTS-Spalte fehlt (db:fts:init nicht gelaufen) o. ä.: statt 500 auf eine
+      // einfache ILIKE-Suche über Titel und Beschreibung zurückfallen.
+      console.error('FTS-Suche fehlgeschlagen, nutze ILIKE-Fallback:', error);
+    }
   }
 
   const where = buildWhere(input);
+  if (q.length > 0) {
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+    ];
+  }
   const orderBy = buildOrderBy(sort);
 
   const [items, total] = await Promise.all([

@@ -128,7 +128,10 @@ function FiltersPanel({
     inStockOnly;
 
   return (
-    <aside aria-label="Produktfilter" className="space-y-6">
+    <aside aria-labelledby="filter-heading" className="space-y-6">
+      <h2 id="filter-heading" className="sr-only">
+        Filter
+      </h2>
       <section className="space-y-3">
         <h3 className="font-serif text-base">Kategorien</h3>
         <ul className="space-y-2">

@@ -19,7 +19,7 @@ export function NewsletterForm() {
     <div className="rounded-2xl border border-border bg-card p-6">
       <div className="mb-4 flex items-center gap-2 text-primary">
         <Mail className="h-4 w-4" />
-        <h3 className="font-serif text-lg tracking-tight">Newsletter</h3>
+        <h2 className="font-serif text-lg tracking-tight sm:text-lg">Newsletter</h2>
       </div>
       <p className="mb-4 text-sm text-muted-foreground">
         Neue Stücke, kleine Werkstatt-Geschichten, gelegentlich ein Rabatt. Kein Spam, Abmeldung mit

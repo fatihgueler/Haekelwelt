@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
@@ -83,9 +82,9 @@ export default async function AccountPage() {
                 ? `${addressCount} gespeicherte Adresse(n).`
                 : 'Noch keine Adressen gespeichert.'}
             </p>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/konto/adressen">Adressen verwalten</Link>
-            </Button>
+            <p className="text-muted-foreground">
+              Neue Adressen gibst du einfach beim nächsten Checkout ein.
+            </p>
           </CardContent>
         </Card>
 

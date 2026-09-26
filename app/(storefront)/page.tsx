@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/storefront/product-card';
 import { db } from '@/lib/db';
 import { getWishlistProductIds } from '@/lib/wishlist';
+import { getNavCategories } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export default async function HomePage() {
       orderBy: { createdAt: 'desc' },
       take: 8,
     }),
-    db.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+    getNavCategories(),
     getWishlistProductIds(),
   ]);
 
@@ -64,7 +65,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="container py-16 lg:py-20">
+      <section aria-labelledby="warum-heading" className="container py-16 lg:py-20">
+        <h2 id="warum-heading" className="sr-only">
+          Warum Häkelwelt
+        </h2>
         <div className="grid gap-6 md:grid-cols-3">
           <Feature
             icon={<Heart className="h-5 w-5" />}
@@ -98,7 +102,7 @@ export default async function HomePage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {categories.map((cat) => (
               <Link
-                key={cat.id}
+                key={cat.slug}
                 href={`/kategorie/${cat.slug}`}
                 className="group block rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-soft-lg"
               >
@@ -131,25 +135,35 @@ export default async function HomePage() {
           </Button>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={{
-                id: product.id,
-                slug: product.slug,
-                title: product.title,
-                priceCents: product.priceCents,
-                imageUrl: product.images[0]?.url,
-                imageAlt: product.images[0]?.alt,
-                blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
-                categoryName: product.category.name,
-                stock: product.stock,
-                inWishlist: wishlist.has(product.id),
-              }}
-            />
-          ))}
-        </div>
+        {featured.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-card p-10 text-center">
+            <p className="font-serif text-2xl">Gerade frisch auf der Nadel.</p>
+            <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+              Die nächsten Stücke entstehen in diesem Moment. Trag dich unten in den Newsletter ein
+              – dann erfährst du als Erste*r, wenn sie fertig sind.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featured.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  title: product.title,
+                  priceCents: product.priceCents,
+                  imageUrl: product.images[0]?.url,
+                  imageAlt: product.images[0]?.alt,
+                  blurDataUrl: product.images[0]?.blurDataUrl ?? undefined,
+                  categoryName: product.category.name,
+                  stock: product.stock,
+                  inWishlist: wishlist.has(product.id),
+                }}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </>
   );

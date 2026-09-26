@@ -38,6 +38,13 @@ const nextConfig = {
       bodySizeLimit: '4mb',
     },
   },
+  async redirects() {
+    // Deutsche Alias-Routen auf die bestehenden Seiten umleiten.
+    return [
+      { source: '/registrieren', destination: '/register', permanent: true },
+      { source: '/kasse', destination: '/checkout', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

@@ -38,7 +38,4 @@ export function slugify(input: string) {
     .replace(/^-+|-+$/g, '');
 }
 
-export function absoluteUrl(path: string) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
-}
+export { absoluteUrl } from '@/lib/site-url';

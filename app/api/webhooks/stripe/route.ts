@@ -6,6 +6,7 @@ import { stripe } from '@/lib/stripe';
 import { sendOrderConfirmation } from '@/lib/email/send-order-confirmation';
 import { formatPriceCents, formatDateDE } from '@/lib/utils';
 import { clearCart } from '@/lib/cart';
+import { getSiteUrl } from '@/lib/site-url';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -121,7 +122,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       city: string;
       country: string;
     };
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+    const siteUrl = getSiteUrl();
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? 'Häkelwelt';
     await sendOrderConfirmation(order.email, {
       customerName: order.user?.name ?? `${shipping.firstName} ${shipping.lastName}`,

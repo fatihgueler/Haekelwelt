@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { Heart, Menu, User } from 'lucide-react';
+import { Heart, User } from 'lucide-react';
 
 import { auth } from '@/auth';
-import { db } from '@/lib/db';
+import { getNavCategories } from '@/lib/categories';
 import { getCart } from '@/lib/cart';
 import { priceCart, SHIPPING_DE_FREE_FROM_CENTS } from '@/lib/pricing';
 import { formatPriceCents } from '@/lib/utils';
@@ -10,14 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/shared/logo';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { CartDrawer, type CartDrawerItem } from './cart-drawer';
+import { DesktopNav } from './desktop-nav';
+import { MobileNav } from './mobile-nav';
 import { SearchBar } from './search-bar';
 
 export async function Header() {
-  const [session, categories, cart] = await Promise.all([
-    auth(),
-    db.category.findMany({ orderBy: { sortOrder: 'asc' } }),
-    getCart(),
-  ]);
+  const [session, categories, cart] = await Promise.all([auth(), getNavCategories(), getCart()]);
 
   const drawerItems: CartDrawerItem[] = (cart?.items ?? []).map((i) => ({
     id: i.id,
@@ -46,45 +44,38 @@ export async function Header() {
       ? `Noch ${formatPriceCents(pricing.freeShippingMissingCents)} bis zum Gratisversand in Deutschland.`
       : 'Versand inklusive – freu dich auf dein Paket.';
 
+  const navCategories = categories.map((c) => ({ slug: c.slug, name: c.name, tone: c.tone }));
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="container flex h-16 items-center gap-3 lg:h-20">
-        <Logo size="md" />
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+      <div className="container flex h-16 items-center gap-2 lg:h-20">
+        <MobileNav categories={navCategories} isLoggedIn={Boolean(session?.user)} />
+        <Logo size="md" className="mr-2 lg:mr-4" />
 
-        <nav className="ml-6 hidden items-center gap-5 md:flex lg:ml-8 lg:gap-6">
-          <Link
-            href="/produkte"
-            className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
-          >
-            Shop
-          </Link>
-          {categories.slice(0, 3).map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/kategorie/${cat.slug}`}
-              className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </nav>
+        <DesktopNav categories={navCategories} />
 
-        <SearchBar className="ml-auto mr-2 hidden max-w-xs flex-1 lg:flex" />
+        <SearchBar className="ml-auto hidden w-full max-w-[16rem] lg:flex" />
 
-        <div className="ml-auto flex items-center gap-1 lg:ml-0">
+        <div className="ml-auto flex items-center gap-0.5 lg:ml-2">
           <ThemeToggle />
           <Button
             asChild
             variant="ghost"
             size="icon"
             className="hidden sm:inline-flex"
-            aria-label="Wunschliste"
+            aria-label="Merkliste"
           >
             <Link href="/konto/wunschliste">
               <Heart className="h-5 w-5" />
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="icon" aria-label="Konto">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="hidden sm:inline-flex"
+            aria-label={session?.user ? 'Mein Konto' : 'Anmelden'}
+          >
             <Link href={session?.user ? '/konto' : '/login'}>
               <User className="h-5 w-5" />
             </Link>
@@ -94,9 +85,6 @@ export async function Header() {
             subtotalCents={pricing.subtotalCents}
             shippingHint={shippingHint}
           />
-          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menü">
-            <Menu className="h-5 w-5" />
-          </Button>
         </div>
       </div>
     </header>

@@ -11,10 +11,12 @@ export function SearchBar({
   className,
   variant = 'header',
   placeholder = 'Suche nach Produkten…',
+  onSubmitted,
 }: {
   className?: string;
   variant?: 'header' | 'inline';
   placeholder?: string;
+  onSubmitted?: () => void;
 }) {
   const router = useRouter();
   const search = useSearchParams();
@@ -31,6 +33,7 @@ export function SearchBar({
     if (trimmed) params.set('q', trimmed);
     const qs = params.toString();
     router.push(qs ? `/produkte?${qs}` : '/produkte');
+    onSubmitted?.();
   };
 
   return (
@@ -48,6 +51,7 @@ export function SearchBar({
         type="search"
         name="q"
         placeholder={placeholder}
+        aria-label="Produkte durchsuchen"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         className={cn('pl-9', variant === 'header' && 'h-10')}

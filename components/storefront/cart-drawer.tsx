@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -40,6 +41,19 @@ export type CartDrawerProps = {
 export function CartDrawer({ items, subtotalCents, shippingHint }: CartDrawerProps) {
   const [open, setOpen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
+  const pathname = usePathname();
+  // Beim Schließen per Link nicht auf den Warenkorb-Button zurückfokussieren –
+  // sonst bleibt nach der Navigation ein dauerhafter Fokusring stehen.
+  const closedByNavigation = React.useRef(false);
+  const closeForNavigation = () => {
+    closedByNavigation.current = true;
+    setOpen(false);
+  };
+
+  React.useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
 
   const handleQty = (itemId: string, quantity: number) => {
@@ -71,7 +85,16 @@ export function CartDrawer({ items, subtotalCents, shippingHint }: CartDrawerPro
           ) : null}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col p-0 sm:max-w-md"
+        onCloseAutoFocus={(e) => {
+          if (closedByNavigation.current) {
+            e.preventDefault();
+            closedByNavigation.current = false;
+          }
+        }}
+      >
         <SheetHeader className="border-b border-border px-6 py-5">
           <SheetTitle>Dein Warenkorb</SheetTitle>
           <SheetDescription>
@@ -88,7 +111,7 @@ export function CartDrawer({ items, subtotalCents, shippingHint }: CartDrawerPro
               <p className="text-muted-foreground">
                 Stöbere durch unsere Kollektionen und finde dein Lieblingsstück.
               </p>
-              <Button asChild onClick={() => setOpen(false)}>
+              <Button asChild onClick={closeForNavigation}>
                 <Link href="/produkte">Zum Shop</Link>
               </Button>
             </div>
@@ -98,7 +121,7 @@ export function CartDrawer({ items, subtotalCents, shippingHint }: CartDrawerPro
                 <li key={item.id} className="flex gap-4">
                   <Link
                     href={`/produkte/${item.productSlug}`}
-                    onClick={() => setOpen(false)}
+                    onClick={closeForNavigation}
                     className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted"
                   >
                     {item.imageUrl ? (
@@ -114,7 +137,7 @@ export function CartDrawer({ items, subtotalCents, shippingHint }: CartDrawerPro
                   <div className="flex flex-1 flex-col gap-1">
                     <Link
                       href={`/produkte/${item.productSlug}`}
-                      onClick={() => setOpen(false)}
+                      onClick={closeForNavigation}
                       className="line-clamp-2 text-sm font-medium hover:text-primary"
                     >
                       {item.title}
@@ -172,10 +195,10 @@ export function CartDrawer({ items, subtotalCents, shippingHint }: CartDrawerPro
             <p className="mt-1 text-xs text-muted-foreground">{shippingHint}</p>
             <Separator className="my-4" />
             <div className="flex flex-col gap-2">
-              <Button asChild size="lg" onClick={() => setOpen(false)}>
+              <Button asChild size="lg" onClick={closeForNavigation}>
                 <Link href="/checkout">Zur Kasse</Link>
               </Button>
-              <Button asChild variant="outline" size="sm" onClick={() => setOpen(false)}>
+              <Button asChild variant="outline" size="sm" onClick={closeForNavigation}>
                 <Link href="/warenkorb">Warenkorb anzeigen</Link>
               </Button>
             </div>

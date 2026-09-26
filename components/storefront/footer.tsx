@@ -2,21 +2,10 @@ import Link from 'next/link';
 import { Logo } from '@/components/shared/logo';
 import { NewsletterForm } from '@/components/storefront/newsletter-form';
 import { Separator } from '@/components/ui/separator';
+import { getNavCategories } from '@/lib/categories';
+import { SERVICE_LINKS } from '@/lib/category-theme';
 
-const shopLinks = [
-  { label: 'Alle Produkte', href: '/produkte' },
-  { label: 'Amigurumi', href: '/kategorie/amigurumi' },
-  { label: 'Heimdeko', href: '/kategorie/heimdeko' },
-  { label: 'Accessoires', href: '/kategorie/accessoires' },
-  { label: 'Babys & Kinder', href: '/kategorie/babys-und-kinder' },
-];
-
-const serviceLinks = [
-  { label: 'Über uns', href: '/ueber-uns' },
-  { label: 'FAQ', href: '/faq' },
-  { label: 'Kontakt', href: '/kontakt' },
-  { label: 'Versand', href: '/versand' },
-];
+const serviceLinks = [...SERVICE_LINKS];
 
 const legalLinks = [
   { label: 'Impressum', href: '/impressum' },
@@ -25,7 +14,13 @@ const legalLinks = [
   { label: 'Widerruf', href: '/widerruf' },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const categories = await getNavCategories();
+  const shopLinks = [
+    { label: 'Alle Produkte', href: '/produkte' },
+    ...categories.map((c) => ({ label: c.name, href: `/kategorie/${c.slug}` })),
+  ];
+
   return (
     <footer className="border-t border-border bg-secondary/30">
       <div className="container py-12 lg:py-16">
@@ -62,7 +57,7 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h3 className="font-serif text-base font-semibold text-foreground">{title}</h3>
+      <h2 className="font-serif text-base font-semibold text-foreground sm:text-base">{title}</h2>
       <ul className="mt-4 space-y-2">
         {links.map((l) => (
           <li key={l.href}>

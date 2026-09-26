@@ -4,6 +4,7 @@ import Script from 'next/script';
 
 import { ThemeProvider } from '@/components/shared/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { getSiteUrl } from '@/lib/site-url';
 
 import './globals.css';
 
@@ -21,7 +22,7 @@ const fraunces = Fraunces({
 });
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? 'Häkelwelt';
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
