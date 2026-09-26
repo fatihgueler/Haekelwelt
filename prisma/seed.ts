@@ -1,6 +1,18 @@
 import { DiscountType, PrismaClient, TaxRate, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
+/**
+ * Demo-Seed für Häkelwelt – idempotent (mehrfach ausführbar, gleiches Ergebnis).
+ *
+ * - 4 Kategorien mit festen Slugs (amigurumi, heimdeko, accessoires, babys-und-kinder)
+ * - 12 Demo-Produkte (3 je Kategorie) mit eigenen SVG-Illustrationen aus /public/demo
+ * - Test-Accounts + Rabattcodes (NUR Entwicklung)
+ *
+ * Material, Maße und Pflege stehen als strukturierter Block am Ende der
+ * Beschreibung („Material: …“, „Maße: …“, „Pflege: …“) und werden auf der
+ * Produktseite als Liste dargestellt (siehe lib/product-details.ts).
+ */
+
 const db = new PrismaClient();
 
 if (process.env.NODE_ENV === 'production') {
@@ -8,202 +20,282 @@ if (process.env.NODE_ENV === 'production') {
   process.exit(1);
 }
 
-// Lizenzfreie Bilder aus Unsplash. Für den produktiven Shop durch echte
-// Produktfotos der Verkäuferin ersetzen (Bilder enthalten möglicherweise
-// abgebildete Personen oder Markenartikel, die wir nicht weiterverkaufen).
-const IMG = (id: string, alt: string) => ({
-  url: `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`,
-  alt,
-});
+type SeedProduct = {
+  slug: string;
+  title: string;
+  categorySlug: string;
+  priceCents: number;
+  stock: number;
+  weightGrams: number;
+  intro: string;
+  material: string;
+  masse: string;
+  pflege: string;
+  alt: string;
+};
+
+const categories = [
+  {
+    slug: 'amigurumi',
+    name: 'Amigurumi',
+    description: 'Kleine gehäkelte Freunde – Tiere und Figuren zum Liebhaben.',
+    sortOrder: 1,
+  },
+  {
+    slug: 'heimdeko',
+    name: 'Heimdeko',
+    description: 'Decken, Kissen und Körbe, die dein Zuhause gemütlich machen.',
+    sortOrder: 2,
+  },
+  {
+    slug: 'accessoires',
+    name: 'Accessoires',
+    description: 'Mützen, Schals und Taschen aus weichen Naturfasern.',
+    sortOrder: 3,
+  },
+  {
+    slug: 'babys-und-kinder',
+    name: 'Babys & Kinder',
+    description: 'Sanfte Begleiter und Kuscheliges für die Kleinsten.',
+    sortOrder: 4,
+  },
+];
+
+const products: SeedProduct[] = [
+  // ---------- Amigurumi ----------
+  {
+    slug: 'kuschelhase-luna',
+    title: 'Kuschelhase „Luna“',
+    categorySlug: 'amigurumi',
+    priceCents: 4900,
+    stock: 3,
+    weightGrams: 180,
+    intro:
+      'Luna hat lange Schlappohren, ein rosa Halstuch und ein Herz für alle, die gern kuscheln. Jede Masche ist von Hand gehäkelt, die Augen sind aufgestickt – ganz ohne Kleinteile.\n\nFür Luna brauche ich etwa sechs Stunden. Deshalb sieht jeder Hase ein kleines bisschen anders aus.',
+    material: '100 % Bio-Baumwolle, Füllung aus Polyester-Kugelfaser (waschbar)',
+    masse: 'ca. 26 cm hoch (mit Ohren), 12 cm breit',
+    pflege: 'Handwäsche bis 30 °C, liegend trocknen',
+    alt: 'Illustration: Kuschelhase Luna aus cremefarbener Baumwolle mit rosa Halstuch',
+  },
+  {
+    slug: 'teddybaer-bruno',
+    title: 'Teddybär „Bruno“',
+    categorySlug: 'amigurumi',
+    priceCents: 5400,
+    stock: 1,
+    weightGrams: 220,
+    intro:
+      'Bruno ist ein klassischer Teddy mit runden Ohren, heller Schnauze und einer mintgrünen Fliege. Arme und Beine sind fest angenäht, damit er jede Abenteuerreise mitmacht.\n\nBruno gibt es genau einmal – wenn er weg ist, häkle ich einen neuen, aber nie denselben.',
+    material: 'Baumwolle-Leinen-Mischung (70/30), Sicherheitsfüllung',
+    masse: 'ca. 24 cm hoch, 14 cm breit',
+    pflege: 'Handwäsche bis 30 °C, nicht in den Trockner',
+    alt: 'Illustration: Teddybär Bruno in Karamellbraun mit mintfarbener Fliege',
+  },
+  {
+    slug: 'wal-walter',
+    title: 'Kleiner Wal „Walter“',
+    categorySlug: 'amigurumi',
+    priceCents: 3900,
+    stock: 4,
+    weightGrams: 120,
+    intro:
+      'Walter pustet eine kleine Fontäne und lächelt dabei so zufrieden, als hätte er gerade den schönsten Platz im Regal gefunden. Himmelblau mit cremefarbenem Bauch, weich und handlich.\n\nPerfekt als Mitbringsel oder als Schreibtisch-Begleiter.',
+    material: '100 % Baumwolle (OEKO-TEX Standard 100), Polyesterfüllung',
+    masse: 'ca. 18 cm lang, 11 cm hoch',
+    pflege: 'Handwäsche bis 30 °C, liegend trocknen',
+    alt: 'Illustration: kleiner Wal Walter in Himmelblau mit cremefarbenem Bauch',
+  },
+  // ---------- Heimdeko ----------
+  {
+    slug: 'granny-square-decke-sonnenschein',
+    title: 'Granny-Square-Decke „Sonnenschein“',
+    categorySlug: 'heimdeko',
+    priceCents: 18900,
+    stock: 1,
+    weightGrams: 1400,
+    intro:
+      'Sechzig Granny Squares in Senf, Himbeere, Mint, Lavendel und Himmelblau, einzeln gehäkelt und von Hand zusammengefügt. Die Decke wärmt auf dem Sofa und macht gute Laune, sobald man sie sieht.\n\nAn dieser Decke habe ich rund drei Wochen gearbeitet. Es gibt sie nur ein einziges Mal.',
+    material: 'Merinowolle (superwash) und Baumwolle, je zur Hälfte',
+    masse: 'ca. 120 × 150 cm, Fransen 4 cm',
+    pflege: 'Wollwaschgang bis 30 °C, liegend trocknen',
+    alt: 'Illustration: bunte Granny-Square-Decke Sonnenschein mit Fransen',
+  },
+  {
+    slug: 'kissenhuelle-maschenglueck',
+    title: 'Kissenhülle „Maschenglück“',
+    categorySlug: 'heimdeko',
+    priceCents: 5900,
+    stock: 3,
+    weightGrams: 350,
+    intro:
+      'Eine mintgrüne Kissenhülle mit gehäkelter Blüte in der Mitte und kleinen Holzknöpfen an den Ecken. Die Rückseite hat einen Hotelverschluss, so rutscht nichts.\n\nPasst auf jedes Kissen mit 40 × 40 cm.',
+    material: '100 % gekämmte Baumwolle, Knöpfe aus Olivenholz',
+    masse: '40 × 40 cm (Füllkissen nicht enthalten)',
+    pflege: 'Schonwaschgang bis 30 °C, auf links waschen',
+    alt: 'Illustration: mintgrüne Kissenhülle Maschenglück mit Blütenmotiv',
+  },
+  {
+    slug: 'haekelkorb-mia',
+    title: 'Häkelkorb „Mia“',
+    categorySlug: 'heimdeko',
+    priceCents: 3400,
+    stock: 5,
+    weightGrams: 400,
+    intro:
+      'Ein fester Korb aus Textilgarn für alles, was gern herumliegt: Wollknäuel, Spielzeug, Pflanzen oder Zeitschriften. Der senfgelbe Rand und die Henkel bringen Farbe ins Regal.\n\nDer Korb steht von allein und behält seine Form.',
+    material: 'Recyceltes Textilgarn (Baumwoll-Jersey)',
+    masse: 'Ø ca. 24 cm, 20 cm hoch',
+    pflege: 'Mit feuchtem Tuch abwischen, bei Bedarf Handwäsche',
+    alt: 'Illustration: Häkelkorb Mia in Natur und Senf, gefüllt mit Wollknäueln',
+  },
+  // ---------- Accessoires ----------
+  {
+    slug: 'bommelmuetze-cosima',
+    title: 'Bommelmütze „Cosima“',
+    categorySlug: 'accessoires',
+    priceCents: 3900,
+    stock: 4,
+    weightGrams: 110,
+    intro:
+      'Weiche Lavendel-Mütze mit breitem Rippenbund und einem dicken rosa Bommel. Sie kratzt nicht und hält auch an windigen Tagen die Ohren warm.\n\nDie Einheitsgröße passt den meisten Erwachsenen (Kopfumfang 54–58 cm).',
+    material: 'Alpaka-Merino-Mischung (40/60), Bommel aus Wollresten',
+    masse: 'Einheitsgröße, Kopfumfang 54–58 cm',
+    pflege: 'Handwäsche kalt mit Wollwaschmittel, liegend trocknen',
+    alt: 'Illustration: lavendelfarbene Bommelmütze Cosima mit rosa Bommel',
+  },
+  {
+    slug: 'haekeltasche-mira',
+    title: 'Häkeltasche „Mira“',
+    categorySlug: 'accessoires',
+    priceCents: 6900,
+    stock: 2,
+    weightGrams: 380,
+    intro:
+      'Eine helle Umhängetasche mit sechs bunten Granny Squares und einem Riemen aus pflanzlich gegerbtem Leder. Innen gibt es ein Baumwollfutter mit kleiner Innentasche.\n\nIn die Tasche passen Geldbeutel, Handy, Buch und ein Apfel.',
+    material: 'Baumwolle, Innenfutter aus Leinen, Lederriemen',
+    masse: 'ca. 28 × 24 cm, Riemenlänge 60 cm',
+    pflege: 'Punktuell mit feuchtem Tuch reinigen, Leder nicht waschen',
+    alt: 'Illustration: cremefarbene Häkeltasche Mira mit bunten Granny Squares und Lederriemen',
+  },
+  {
+    slug: 'loopschal-wolke',
+    title: 'Loopschal „Wolke“',
+    categorySlug: 'accessoires',
+    priceCents: 4900,
+    stock: 3,
+    weightGrams: 160,
+    intro:
+      'Ein Loopschal, so leicht wie eine Wolke: Himmelblau und Lavendel im Farbverlauf, locker gehäkelt und sehr weich. Er lässt sich einfach oder doppelt um den Hals legen.\n\nDas Garn ist so weich, dass man ihn auch direkt auf der Haut gern trägt.',
+    material: 'Merino-Seide-Mischung (80/20)',
+    masse: 'Umfang ca. 140 cm, Breite 25 cm',
+    pflege: 'Handwäsche kalt, liegend trocknen, nicht wringen',
+    alt: 'Illustration: weicher Loopschal Wolke in Himmelblau und Lavendel',
+  },
+  // ---------- Babys & Kinder ----------
+  {
+    slug: 'baby-mobile-mond-und-sterne',
+    title: 'Baby-Mobile „Mond & Sterne“',
+    categorySlug: 'babys-und-kinder',
+    priceCents: 6900,
+    stock: 2,
+    weightGrams: 260,
+    intro:
+      'Mond, Sterne, eine Wolke und ein Herz hängen an einem Ring aus Buchenholz und drehen sich ganz langsam. Die sanften Farben beruhigen und laden zum Träumen ein.\n\nWichtig: Das Mobile nur außerhalb der Reichweite deines Kindes aufhängen.',
+    material: 'Bio-Baumwolle, Buchenholzring, Baumwollfäden',
+    masse: 'Ringdurchmesser 25 cm, Gesamthöhe ca. 55 cm',
+    pflege: 'Figuren mit feuchtem Tuch abwischen',
+    alt: 'Illustration: Baby-Mobile Mond und Sterne mit Wolke und Herz an einem Holzring',
+  },
+  {
+    slug: 'babyschuhe-erste-schritte',
+    title: 'Babyschuhe „Erste Schritte“',
+    categorySlug: 'babys-und-kinder',
+    priceCents: 2900,
+    stock: 6,
+    weightGrams: 60,
+    intro:
+      'Weiche Babyschuhe mit Knopfriegel, damit sie beim Strampeln nicht verloren gehen. Der eine Schuh ist himmelblau, der andere mint – ein Paar, das nicht gleich aussehen muss.\n\nGrößen 0–3, 3–6 und 6–12 Monate. Die Größe gibst du bitte beim Bestellen im Kommentar an.',
+    material: '100 % Bio-Baumwolle (GOTS), Holzknöpfe',
+    masse: 'Sohlenlänge 9 / 10,5 / 12 cm',
+    pflege: 'Handwäsche bis 30 °C, in Form ziehen und liegend trocknen',
+    alt: 'Illustration: ein Paar Babyschuhe Erste Schritte in Himmelblau und Mint mit Holzknöpfen',
+  },
+  {
+    slug: 'greifling-elefant-emil',
+    title: 'Greifling Elefant „Emil“',
+    categorySlug: 'babys-und-kinder',
+    priceCents: 2400,
+    stock: 5,
+    weightGrams: 90,
+    intro:
+      'Emil ist ein kleiner Elefant mit großen Ohren und einem Ring aus unbehandeltem Ahornholz. Er ist perfekt zum Greifen, Knabbern und Festhalten, und im Bauch versteckt sich eine leise Rassel.\n\nAlle Teile sind fest vernäht, die Augen sind gestickt.',
+    material: 'Bio-Baumwolle, Ahornholzring (unbehandelt), Rasselkapsel',
+    masse: 'ca. 12 cm hoch, Ring Ø 7 cm',
+    pflege: 'Handwäsche bis 30 °C, Holz nur feucht abwischen',
+    alt: 'Illustration: Greifling Elefant Emil in Grau-Lavendel mit Holzring',
+  },
+];
+
+function buildDescription(p: SeedProduct) {
+  return `${p.intro}\n\nMaterial: ${p.material}\nMaße: ${p.masse}\nPflege: ${p.pflege}`;
+}
 
 async function main() {
   console.warn('Seeding database…');
 
-  const categories = [
-    {
-      slug: 'amigurumi',
-      name: 'Amigurumi',
-      description: 'Liebevoll gehäkelte Tiere, Figuren und Freunde fürs Leben.',
-      sortOrder: 1,
-    },
-    {
-      slug: 'heimdeko',
-      name: 'Heimdeko',
-      description: 'Decken, Kissen und Wandobjekte für ein warmes Zuhause.',
-      sortOrder: 2,
-    },
-    {
-      slug: 'accessoires',
-      name: 'Accessoires',
-      description: 'Mützen, Schals und Taschen aus weichen Naturfasern.',
-      sortOrder: 3,
-    },
-    {
-      slug: 'babys-und-kinder',
-      name: 'Babys & Kinder',
-      description: 'Sanfte Begleiter und kuschelige Kleinigkeiten für die Kleinsten.',
-      sortOrder: 4,
-    },
-  ];
-
   for (const c of categories) {
     await db.category.upsert({ where: { slug: c.slug }, create: c, update: c });
   }
-
-  const cats = await db.category.findMany();
+  const cats = await db.category.findMany({ select: { id: true, slug: true } });
   const bySlug = Object.fromEntries(cats.map((c) => [c.slug, c.id]));
 
-  // 12 Produkte über 4 Kategorien
-  const products = [
-    {
-      slug: 'kuschelhase-luna',
-      title: 'Kuschelhase Luna',
-      description:
-        'Ein zarter Häschen-Freund aus weicher Baumwolle. Jeder Hase wird einzeln gehäkelt und mit antiallergener Füllung bestückt – perfekt zum Schmusen, Spielen oder Verschenken.\n\nHöhe: ca. 22 cm. Augen aus aufgenähter Filz-Applikation (keine Knopfaugen, sicher für Babys).',
-      priceCents: 4900,
-      stock: 3,
-      categorySlug: 'amigurumi',
-      image: IMG('photo-1602250916380-2c8bf94b96fc', 'Kuschelhase aus Baumwolle in Rosé'),
-    },
-    {
-      slug: 'amigurumi-fuchs-finja',
-      title: 'Amigurumi Fuchs Finja',
-      description:
-        'Finja, die kleine Häkelfüchsin, mit buschigem Schwanz und freundlichem Lächeln. Ein verspielter Begleiter, der jeden Tag heller macht.',
-      priceCents: 5400,
-      stock: 1,
-      categorySlug: 'amigurumi',
-      image: IMG('photo-1582719471384-894fbb16e074', 'Fuchs Amigurumi in Orange und Weiß'),
-    },
-    {
-      slug: 'baeren-paar-pino-pina',
-      title: 'Bären-Paar Pino & Pina',
-      description:
-        'Zwei kleine Bären, die zusammengehören – aber auch einzeln erhältlich sind. Mit kleinen Holz-Knöpfen und gewachsten Garnschleifen.',
-      priceCents: 6900,
-      stock: 2,
-      categorySlug: 'amigurumi',
-      image: IMG('photo-1564466809058-bf4114d55352', 'Häkelbären in Beige'),
-    },
+  // Neuestes Produkt zuerst in „Frisch eingetroffen“ – daher gestaffelte Zeitstempel.
+  const now = Date.now();
 
-    {
-      slug: 'granny-square-decke-herbst',
-      title: 'Granny-Square-Decke „Herbst"',
-      description:
-        'Eine Patchwork-Decke aus 100 Granny Squares in Tönen von Senf, Terracotta und Salbei. Wärmt an kühlen Abenden und ist ein echtes Schmuckstück fürs Sofa.\n\nMaße: ca. 150 × 180 cm. Material: 100 % Merinowolle.',
-      priceCents: 24900,
-      stock: 1,
-      categorySlug: 'heimdeko',
-      image: IMG('photo-1583845112203-29329902332e', 'Granny-Square-Decke in Herbstfarben'),
-    },
-    {
-      slug: 'kissenhuelle-rippenstrick',
-      title: 'Kissenhülle Rippenstrick',
-      description:
-        'Strukturierte Häkelhülle mit Rippenmuster und Holzknöpfen, passt auf jedes 40×40-cm-Kissen.',
-      priceCents: 6900,
-      stock: 4,
-      categorySlug: 'heimdeko',
-      image: IMG('photo-1493663284031-b7e3aefcae8e', 'Beige Kissenhülle aus Wolle'),
-    },
-    {
-      slug: 'wandbehang-sonnenaufgang',
-      title: 'Wandbehang „Sonnenaufgang"',
-      description:
-        'Boho-Wandbehang aus Naturbaumwolle mit gehäkeltem Sonnenmotiv und Treibholz-Stab. Ein ruhiger Blickfang fürs Schlaf- oder Wohnzimmer.',
-      priceCents: 7900,
-      stock: 2,
-      categorySlug: 'heimdeko',
-      image: IMG('photo-1616627988032-21b2cdc8f06b', 'Boho-Wandbehang in Beige'),
-    },
+  for (const [index, p] of products.entries()) {
+    const categoryId = bySlug[p.categorySlug];
+    if (!categoryId) throw new Error(`Kategorie ${p.categorySlug} fehlt`);
 
-    {
-      slug: 'wollmuetze-cosima',
-      title: 'Wollmütze „Cosima"',
-      description:
-        'Weiche Mütze aus Alpaka-Mischgarn, Innenfutter aus Baumwolle. In Einheitsgröße, angenehm warm und kratzfrei.',
-      priceCents: 3900,
-      stock: 5,
-      categorySlug: 'accessoires',
-      image: IMG('photo-1576566588028-4147f3842f27', 'Beige Wollmütze'),
-    },
-    {
-      slug: 'umhaengetasche-mira',
-      title: 'Umhängetasche „Mira"',
-      description:
-        'Stylische Häkeltasche mit Leder-Trageriemen. Innenfutter aus festem Baumwollstoff mit Reißverschlusstasche. Maße: ca. 28 × 22 cm.',
-      priceCents: 8900,
-      stock: 2,
-      categorySlug: 'accessoires',
-      image: IMG('photo-1591561954557-26941169b49e', 'Häkeltasche in Naturweiß'),
-    },
-    {
-      slug: 'schal-waldspaziergang',
-      title: 'Schal „Waldspaziergang"',
-      description:
-        'Langer Schal in Moos- und Erdtönen, gehäkelt mit lockerem Stäbchen-Muster. Hält warm, ohne aufzutragen.',
-      priceCents: 5900,
-      stock: 3,
-      categorySlug: 'accessoires',
-      image: IMG('photo-1520903920243-00d872a2d1c9', 'Grüner Wollschal'),
-    },
+    const images = [
+      { url: `/demo/${p.slug}.svg`, alt: p.alt, sortOrder: 0, width: 800, height: 1000 },
+      {
+        url: `/demo/${p.slug}-detail.svg`,
+        alt: `Detailansicht der Maschen von ${p.title}`,
+        sortOrder: 1,
+        width: 800,
+        height: 1000,
+      },
+    ];
 
-    {
-      slug: 'baby-mobile-mond-und-sterne',
-      title: 'Baby-Mobile „Mond & Sterne"',
-      description:
-        'Sanft schaukelndes Mobile mit Mond, Wolken und kleinen Sternen aus Baumwolle. Perfekt über dem Babybett – schadstoffgeprüfte Materialien.',
-      priceCents: 6900,
-      stock: 2,
-      categorySlug: 'babys-und-kinder',
-      image: IMG('photo-1519689680058-324335c77eba', 'Baby-Mobile aus Häkelfiguren'),
-    },
-    {
-      slug: 'babyschuhe-erste-schritte',
-      title: 'Babyschuhe „Erste Schritte"',
-      description:
-        'Weiche Babyschuhe für die ersten Krabbelversuche. 100 % Baumwolle, Größen 0–3, 3–6 und 6–9 Monate verfügbar (bitte beim Bestellen vermerken).',
-      priceCents: 2900,
-      stock: 5,
-      categorySlug: 'babys-und-kinder',
-      image: IMG('photo-1522771739844-6a9f6d5f14af', 'Babyschuhe in Pastellfarben'),
-    },
-    {
-      slug: 'kuscheltier-elefant-emil',
-      title: 'Kuscheltier Elefant „Emil"',
-      description:
-        'Großer Häkelelefant für lange Freundschaften. Geprüfte Füllung, alle Augen aufgestickt – sicher für Kinder ab 0 Monaten.',
-      priceCents: 5900,
-      stock: 3,
-      categorySlug: 'babys-und-kinder',
-      image: IMG('photo-1620207418302-439b387441b0', 'Häkelelefant Emil in Grau'),
-    },
-  ];
+    const data = {
+      title: p.title,
+      description: buildDescription(p),
+      priceCents: p.priceCents,
+      stock: p.stock,
+      weightGrams: p.weightGrams,
+      taxRate: TaxRate.STANDARD,
+      isActive: true,
+      categoryId,
+    };
 
-  for (const p of products) {
-    await db.product.upsert({
+    const product = await db.product.upsert({
       where: { slug: p.slug },
       create: {
         slug: p.slug,
-        title: p.title,
-        description: p.description,
-        priceCents: p.priceCents,
-        stock: p.stock,
-        taxRate: TaxRate.STANDARD,
-        categoryId: bySlug[p.categorySlug]!,
-        images: { create: { ...p.image, sortOrder: 0 } },
+        ...data,
+        createdAt: new Date(now - index * 36 * 60 * 60 * 1000),
       },
-      update: {
-        title: p.title,
-        description: p.description,
-        priceCents: p.priceCents,
-        stock: p.stock,
-        categoryId: bySlug[p.categorySlug]!,
-      },
+      update: data,
+    });
+
+    // Bilder immer neu setzen, damit ein erneuter Lauf alte URLs ersetzt.
+    await db.productImage.deleteMany({ where: { productId: product.id } });
+    await db.productImage.createMany({
+      data: images.map((img) => ({ ...img, productId: product.id })),
     });
   }
 
-  // Admin + Test-Kunde (NICHT für Produktion)
+  // Test-Accounts (NICHT für Produktion)
   const adminEmail = 'admin@haekelwelt.local';
   const adminPasswordHash = await bcrypt.hash('Admin123!Admin', 12);
   await db.user.upsert({
@@ -230,7 +322,7 @@ async function main() {
     update: { passwordHash: customerPasswordHash },
   });
 
-  // Demo-Rabattcodes (Phase 2)
+  // Demo-Rabattcodes
   await db.discountCode.upsert({
     where: { code: 'WILLKOMMEN10' },
     create: {
@@ -258,7 +350,8 @@ async function main() {
     update: {},
   });
 
-  console.warn('Seed completed.');
+  const [catCount, productCount] = await Promise.all([db.category.count(), db.product.count()]);
+  console.warn(`Seed completed: ${catCount} Kategorien, ${productCount} Produkte.`);
   console.warn(`Admin login:    ${adminEmail} / Admin123!Admin`);
   console.warn(`Customer login: ${customerEmail} / Kunde123!Kunde`);
   console.warn('Discount codes: WILLKOMMEN10 (10 %, min 30 €), FRUEHLING5 (5 € fix, min 50 €)');

@@ -13,7 +13,12 @@ async function main() {
   const sql = await readFile(resolve('prisma/sql/01-init-search.sql'), 'utf8');
   // Sequenziell ausführen: Postgres mag mehrere Statements in einem
   // $executeRawUnsafe nicht durchgehend. Wir splitten an "; " gefolgt von Newline.
+  // Kommentarzeilen vorher entfernen – sonst beginnt jeder Block mit "--" und
+  // würde vom Filter unten komplett verworfen (dann liefe kein Statement).
   const statements = sql
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('--'))
+    .join('\n')
     .split(/;\s*\n/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0 && !s.startsWith('--'));

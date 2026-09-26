@@ -74,6 +74,14 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        bob: {
+          '0%, 100%': { transform: 'translateY(0) rotate(-3deg)' },
+          '50%': { transform: 'translateY(-10px) rotate(3deg)' },
+        },
+        'spin-slower': {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
         'accordion-down': {
           from: { height: '0' },
           to: { height: 'var(--radix-accordion-content-height)' },
@@ -86,6 +94,9 @@ const config: Config = {
       animation: {
         'fade-in': 'fade-in 200ms ease-out',
         'fade-in-up': 'fade-in-up 300ms ease-out',
+        bob: 'bob 5s ease-in-out infinite',
+        'bob-slow': 'bob 7s ease-in-out infinite',
+        'spin-slower': 'spin-slower 60s linear infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },

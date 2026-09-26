@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import { SmartImage as Image } from '@/components/shared/smart-image';
 import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 

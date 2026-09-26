@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, Heart, Leaf, Package } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { HeroArt } from '@/components/illustrations/hero-art';
 import { ProductCard } from '@/components/storefront/product-card';
 import { db } from '@/lib/db';
 import { getWishlistProductIds } from '@/lib/wishlist';
@@ -50,17 +50,8 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-muted shadow-soft-lg lg:aspect-[5/6]">
-            {featured[0]?.images[0] ? (
-              <Image
-                src={featured[0].images[0].url}
-                alt={featured[0].images[0].alt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-cover"
-                priority
-              />
-            ) : null}
+          <div className="relative mx-auto w-full max-w-[520px]">
+            <HeroArt className="h-auto w-full" />
           </div>
         </div>
       </section>

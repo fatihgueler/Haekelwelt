@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { SmartImage as Image } from '@/components/shared/smart-image';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
+import { SmartImage as Image } from '@/components/shared/smart-image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
